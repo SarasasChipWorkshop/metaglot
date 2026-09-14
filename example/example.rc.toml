@@ -1,0 +1,23 @@
+version = 1
+
+[strings.1000]
+msgid = "Example - Image Viewer"
+context = "Explorer" # Used by Explorer to show in panel.
+comment = "File description of the executable."
+
+[strings.1001]
+msgid = "JPEG Image"
+comment = "File type name for: jpg, jpeg, jfif"
+
+[strings.1002]
+msgid = "PNG Image"
+comment = "File type name for: png"
+
+[strings.file_description]
+msgid = "Example - Image Viewer"
+context = "Self" # Used by file itself as its property.
+comment = "File description of the executable."
+
+[strings.product_name]
+msgid = "Example"
+comment = "Display name of the product."

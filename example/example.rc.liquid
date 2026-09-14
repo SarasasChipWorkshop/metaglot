@@ -1,0 +1,52 @@
+#pragma code_page(65001)
+
+// ---------------------------
+// String tables
+// ---------------------------
+
+{% for lang in languages %}// {{ lang.name }}
+LANGUAGE {{ lang.primary }}, {{ lang.sublanguage }}
+STRINGTABLE
+BEGIN
+{% for i in (1000..1002) %}
+{% assign key = i | to_string %}
+{% assign s = lang.named[key] %}
+    {{ s.key }} "{{ s.text | rc_escape }}" // {{ s.comment }}
+{% endfor %}
+END
+{% endfor %}
+
+// ---------------------------
+// Version information
+// ---------------------------
+
+1 VERSIONINFO
+FILEVERSION 1, 0, 0, 0
+PRODUCTVERSION 1, 0, 0, 0
+FILEFLAGMASK 0x3fL
+FILEFLAGS 0x0L
+FILEOS VOS_NT_WINDOWS32
+FILETYPE VFT_APP
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+{% for lang in languages %}
+        BLOCK "{{ lang.block_key }}"
+        BEGIN
+            VALUE "Comments", "https://github.com/SarasasChipWorkshop/metaglot"
+            VALUE "CompanyName", "Sarasa's Chip Workshop"
+            VALUE "FileDescription", "{{ lang.named.file_description | rc_escape }}"
+            VALUE "FileVersion", "1.0.0.0"
+            VALUE "InternalName", "example"
+            VALUE "LegalCopyright", "MIT/Expat License - Copyright (C) 2026 Sarasa's Chip Workshop"
+            VALUE "OriginalFilename", "example.exe"
+            VALUE "ProductName", "{{ lang.named.product_name | rc_escape }}"
+            VALUE "ProductVersion", "1.0.0.0"
+        END
+{% endfor %}
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", {% for lang in languages %}{{ lang.langid }}, 1200{% unless forloop.last %}, {% endunless %}{% endfor %}
+    END
+END
