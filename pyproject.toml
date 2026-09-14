@@ -7,12 +7,18 @@ authors = [
     { name = "yyc12345", email = "yyc12321@outlook.com" }
 ]
 requires-python = ">=3.13"
+license = { text = "MIT" }
 dependencies = [
     "polib>=1.2.0",
     "pycountry>=26.2.16",
     "pydantic>=2.11.7",
     "python-liquid>=2.2.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/SarasasChipWorkshop/metaglot"
+Repository = "https://github.com/SarasasChipWorkshop/metaglot"
+Issues = "https://github.com/SarasasChipWorkshop/metaglot/issues"
 
 [project.scripts]
 metaglot = "metaglot:main"
