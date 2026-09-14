@@ -23,6 +23,7 @@ from ..langid import PoLang, WinLcid
 # has 'qut' -> 0x0086 and marks 'quc' (0x0093), 'qut-GT' (0x0486) and
 # 'quc-CO' (0x0493) as reserved. The section 2.2 registry wins here.
 
+# fmt: off
 _LCID_TAGS: dict[str, WinLcid] = {
     "ar": WinLcid(0x0001),
     "bg": WinLcid(0x0002),
@@ -480,6 +481,7 @@ _LCID_TAGS: dict[str, WinLcid] = {
     "ku-Arab": WinLcid(0x7C92),
     # "fr-015": WinLcid(0xE40C),  # reserved
 }
+# fmt: on
 
 
 # Gettext-style script designator words mapped to ISO 15924 script codes.
