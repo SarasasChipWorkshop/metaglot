@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from . import pot, render
+from . import pofile, render
 from .cli import create_argparser
 
 
@@ -13,7 +13,7 @@ def main() -> None:
     try:
         if args.command == "rc":
             if args.rc_command == "pot":
-                pot.generate(args.manifest, args.output)
+                pofile.generate(args.manifest, args.output)
             elif args.rc_command == "render":
                 render.render(args.manifest, args.po, args.template, args.output)
     except (ValueError, RuntimeError) as exc:
