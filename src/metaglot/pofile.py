@@ -51,7 +51,7 @@ def generate(manifest_path: Path, output_path: Path) -> None:
     manifest: Manifest = load_manifest(manifest_path)
     po = polib.POFile()
     po.metadata = _POT_HEADER
-    for _, entry in manifest.entries:
+    for _, entry in manifest.strings.items():
         po.append(
             polib.POEntry(
                 msgid=entry.msgid,

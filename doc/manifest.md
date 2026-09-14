@@ -31,7 +31,7 @@ outputs. It must be non-empty; both numeric IDs (e.g. `1000`) and names
 
 A manifest is rejected when:
 
-- `version` is not `1`.
+- `version` is not matched with current value introduced above.
 - Any string entry key is empty.
 - Two entries share both `msgid` and `context`.
 - An entry or the document root contains unknown fields.

@@ -25,7 +25,7 @@ def _language_context(
     translations: dict[str, str],
     manifest: Manifest,
 ) -> dict:
-    entries = manifest.entries
+    entries = manifest.strings.items()
     return {
         "name": language.name,
         "locale": locale,
@@ -51,7 +51,7 @@ def _language_context(
 
 def render(manifest_path: Path, po_patterns: list[Path], template_path: Path, output_path: Path) -> None:
     manifest = load_manifest(manifest_path)
-    known = manifest.msgids
+    known = {entry.msgid for entry in manifest.strings.values()}
 
     collected = []
     locale_sources: dict[str, Path] = {}
