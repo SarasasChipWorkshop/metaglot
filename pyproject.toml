@@ -1,0 +1,22 @@
+[project]
+name = "metaglot"
+version = "0.1.0"
+description = "A command-line tool that unifies localization metadata for applications shipped on multiple platforms."
+readme = "README.md"
+authors = [
+    { name = "yyc12345", email = "yyc12321@outlook.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "polib>=1.2.0",
+    "pycountry>=26.2.16",
+    "pydantic>=2.11.7",
+    "python-liquid>=2.2.0",
+]
+
+[project.scripts]
+metaglot = "metaglot:main"
+
+[build-system]
+requires = ["uv_build>=0.8.0,<0.9"]
+build-backend = "uv_build"
