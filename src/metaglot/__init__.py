@@ -2,22 +2,32 @@ import logging
 import sys
 
 from . import pofile, render
-from .cli import create_argparser
+from .cli import parse, RcOpts, RcPotOpts, RcRenderOpts
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
-    parser = create_argparser()
-    args = parser.parse_args()
+    opts = parse()
 
     try:
-        if args.command == "rc":
-            if args.rc_command == "pot":
-                pofile.generate(args.manifest, args.output)
-            elif args.rc_command == "render":
-                render.render(args.manifest, args.po, args.template, args.output)
-    except (ValueError, RuntimeError) as exc:
-        logging.fatal("%s", exc)
+        match opts.opts:
+            case RcOpts() as rc_opts:
+                match rc_opts.opts:
+                    case RcPotOpts() as rc_pot_opts:
+                        pofile.generate(rc_pot_opts.in_manifest, rc_pot_opts.out_pot)
+                    case RcRenderOpts() as rc_rdr_opts:
+                        render.render(
+                            rc_rdr_opts.in_manifest,
+                            rc_rdr_opts.in_po,
+                            rc_rdr_opts.in_template,
+                            rc_rdr_opts.out_rc,
+                        )
+                    case _:
+                        raise RuntimeError(f"unhandled rc options: {rc_opts.opts!r}")
+            case _:
+                raise RuntimeError(f"unhandled options: {opts.opts!r}")
+    except Exception as e:
+        logging.fatal("Runtime error: %s", e, exc_info=True)
         sys.exit(1)
 
 
