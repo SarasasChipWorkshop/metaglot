@@ -5,7 +5,8 @@ from liquid import Environment, StrictUndefined
 from liquid.exceptions import LiquidError
 
 from . import winlang
-from .catalog import Manifest, collect_po_files, load_manifest, load_po
+from .catalog import collect_po_files, load_po
+from .manifest import Manifest, load_manifest
 
 
 def _rc_escape(value: str) -> str:
