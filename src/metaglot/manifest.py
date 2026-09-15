@@ -54,9 +54,7 @@ class Manifest(BaseModel, frozen=True):
         if duplicates:
             rendered = ", ".join(
                 f"{msgid!r}" if context is None else f"{msgid!r} (context {context!r})"
-                for msgid, context in sorted(
-                    duplicates, key=lambda pair: (pair[0], pair[1] or "")
-                )
+                for msgid, context in duplicates
             )
             raise ValueError(f"duplicated msgid and context combination(s): {rendered}")
 

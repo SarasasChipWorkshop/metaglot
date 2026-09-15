@@ -10,7 +10,7 @@ exist fails the render. Output is written as UTF-8 (without BOM) using LF line e
 
 | Variable    | Type              | Description |
 |-------------|-------------------|-------------|
-| `languages` | array of language | One entry per language, see below. The English (`en`) entry is always present and comes first; remaining entries follow, ordered by Windows language identifier. |
+| `languages` | array of language | One entry per language, see below. The English (`en`) entry is always present and comes first; remaining entries follow in the order their PO files are matched. |
 
 ## Language object
 

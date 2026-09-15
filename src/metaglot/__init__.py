@@ -3,6 +3,7 @@ import sys
 
 from . import pofile, render
 from .cli import parse, RcOpts, RcPotOpts, RcRenderOpts
+from .manifest import load_manifest
 
 
 def main() -> None:
@@ -14,7 +15,8 @@ def main() -> None:
             case RcOpts() as rc_opts:
                 match rc_opts.opts:
                     case RcPotOpts() as rc_pot_opts:
-                        pofile.generate(rc_pot_opts.in_manifest, rc_pot_opts.out_pot)
+                        manifest = load_manifest(rc_pot_opts.in_manifest)
+                        pofile.generate_pot(manifest, rc_pot_opts.out_pot)
                     case RcRenderOpts() as rc_rdr_opts:
                         render.render(
                             rc_rdr_opts.in_manifest,

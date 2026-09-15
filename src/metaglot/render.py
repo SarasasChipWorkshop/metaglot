@@ -5,8 +5,9 @@ from liquid import Environment, StrictUndefined
 from liquid.exceptions import LiquidError
 
 from . import winlang
+from .langid import PoLang
 from .manifest import Manifest, load_manifest
-from .pofile import collect_po_files, load_po
+from .pofile import LanguagePack, resolve_glob_files, resolve_translations
 
 
 def _rc_escape(value: str) -> str:
@@ -22,10 +23,9 @@ def _create_environment() -> Environment:
 def _language_context(
     locale: str,
     language: winlang.WindowsLanguage,
-    translations: dict[str, str],
+    pack: LanguagePack,
     manifest: Manifest,
 ) -> dict:
-    entries = manifest.strings.items()
     return {
         "name": language.name,
         "locale": locale,
@@ -37,60 +37,51 @@ def _language_context(
             {
                 "key": key,
                 "msgid": entry.msgid,
-                "text": translations.get(entry.msgid, entry.msgid),
+                "text": pack.translations[key],
                 "context": entry.context,
             }
-            for key, entry in entries
+            for key, entry in manifest.strings.items()
         ],
-        "named": {
-            key: translations.get(entry.msgid, entry.msgid)
-            for key, entry in entries
-        },
+        "named": pack.translations,
     }
 
 
-def render(manifest_path: Path, po_patterns: list[Path], template_path: Path, output_path: Path) -> None:
-    manifest = load_manifest(manifest_path)
-    known = {entry.msgid for entry in manifest.strings.values()}
+def _lookup_windows_language(lang: PoLang) -> winlang.WindowsLanguage:
+    try:
+        return winlang.lookup(lang.value)
+    except KeyError:
+        raise ValueError(
+            f"language '{lang}' has no Windows language mapping"
+        ) from None
 
-    collected = []
-    locale_sources: dict[str, Path] = {}
-    for po_path in collect_po_files(po_patterns):
-        locale, translations = load_po(po_path)
-        unknown = sorted(set(translations) - known)
-        if unknown:
-            raise ValueError(
-                f"{po_path.name} contains unknown msgid(s): {', '.join(unknown)}"
-            )
-        if locale in locale_sources:
-            raise ValueError(
-                f"duplicate locale '{locale}' found in '{locale_sources[locale].name}' and '{po_path.name}'"
-            )
-        locale_sources[locale] = po_path
-        try:
-            language = winlang.lookup(locale)
-        except KeyError:
-            raise ValueError(
-                f"locale '{locale}' (from {po_path.name}) has no Windows language mapping"
-            ) from None
-        collected.append((locale, language, translations))
+
+def render(
+    manifest_path: Path,
+    po_patterns: list[Path],
+    template_path: Path,
+    output_path: Path,
+) -> None:
+    manifest = load_manifest(manifest_path)
+    packs = resolve_translations(manifest, resolve_glob_files(po_patterns))
 
     english = winlang.lookup("en")
-    english_po = next(
-        (item for item in collected if item[1].langid == english.langid), None
+    resolved = [(pack, _lookup_windows_language(pack.lang)) for pack in packs.values()]
+    english_item = next(
+        (item for item in resolved if item[1].langid == english.langid), None
     )
-    others = sorted(
-        (item for item in collected if item[1].langid != english.langid),
-        key=lambda item: item[1].langid,
-    )
-    ordered = [
-        ("en", english, english_po[2] if english_po else {}),
-        *others,
-    ]
+    others = [item for item in resolved if item[1].langid != english.langid]
+    if english_item is None:
+        english_pack = LanguagePack(
+            PoLang("en"),
+            {key: entry.msgid for key, entry in manifest.strings.items()},
+        )
+        ordered = [(english_pack, english), *others]
+    else:
+        ordered = [english_item, *others]
 
     languages = [
-        _language_context(locale, language, translations, manifest)
-        for locale, language, translations in ordered
+        _language_context(pack.lang.value, language, pack, manifest)
+        for pack, language in ordered
     ]
 
     if not template_path.is_file():
