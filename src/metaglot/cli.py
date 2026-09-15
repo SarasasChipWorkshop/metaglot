@@ -27,14 +27,23 @@ class RcRenderOpts:
 
 
 @dataclass(frozen=True)
+class RcUpdateOpts:
+    in_pot: Path
+    """The path to the input POT template file."""
+    in_po: list[Path]
+    """The path to input PO files to update, each may be a glob pattern."""
+
+
+@dataclass(frozen=True)
 class RcOpts:
-    opts: RcPotOpts | RcRenderOpts
+    opts: RcPotOpts | RcRenderOpts | RcUpdateOpts
     """The option of one of subcommand."""
 
 
 class RcCommand(enum.StrEnum):
     Pot = "pot"
     Render = "render"
+    Update = "update"
 
 
 @dataclass(frozen=True)
@@ -64,6 +73,9 @@ _RC_RDR_MANIFEST_DEST = "manifest"
 _RC_RDR_PO_DEST = "po"
 _RC_RDR_TEMPLATE_DEST = "template"
 _RC_RDR_OUTPUT_DEST = "output"
+
+_RC_UPD_POT_DEST = "pot"
+_RC_UPD_PO_DEST = "po"
 
 
 def _register_rc_pot_param(parser: ArgumentParser) -> None:
@@ -133,6 +145,30 @@ def _register_rc_render_param(parser: ArgumentParser) -> None:
     )
 
 
+def _register_rc_update_param(parser: ArgumentParser) -> None:
+    parser.add_argument(
+        "-t",
+        "--pot",
+        dest=_RC_UPD_POT_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to the input POT template file.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-p",
+        "--po",
+        dest=_RC_UPD_PO_DEST,
+        action="extend",
+        nargs="+",
+        type=Path,
+        required=True,
+        help="The PO files to update, each may be a glob pattern.",
+        metavar="GLOB",
+    )
+
+
 def _register_rc_param(parser: ArgumentParser) -> None:
     cmds = parser.add_subparsers(dest=_RC_SUBCMD_DEST, required=True)
     pot_subcmd = cmds.add_parser(
@@ -144,6 +180,10 @@ def _register_rc_param(parser: ArgumentParser) -> None:
         help="Render a user-provided template with manifest data and PO translations.",
     )
     _register_rc_render_param(render_subcmd)
+    update_subcmd = cmds.add_parser(
+        RcCommand.Update.value, help="Update PO files against a POT template."
+    )
+    _register_rc_update_param(update_subcmd)
 
 
 def _register_param(parser: ArgumentParser) -> None:
@@ -187,6 +227,11 @@ def parse() -> Opts:
                         args[_RC_RDR_OUTPUT_DEST],
                     )
                     rc_opts = RcOpts(rc_rdr_opts)
+                case RcCommand.Update:
+                    rc_upd_opts = RcUpdateOpts(
+                        args[_RC_UPD_POT_DEST], args[_RC_UPD_PO_DEST]
+                    )
+                    rc_opts = RcOpts(rc_upd_opts)
                 case _:
                     raise ValueError(f"unhandled rc command: {args[_RC_SUBCMD_DEST]}")
             opts = Opts(rc_opts)

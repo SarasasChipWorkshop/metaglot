@@ -1,4 +1,6 @@
 import glob
+import os
+import subprocess
 import logging
 from dataclasses import dataclass
 from pathlib import Path
@@ -46,6 +48,58 @@ def resolve_glob_files(patterns: Iterable[Path]) -> Iterator[Path]:
             logging.warning("Pattern %s does not match any file.", pattern)
         for name in matched:
             yield name.resolve()
+
+
+def _load_po(path: Path) -> polib.POFile:
+    """Load and parse a PO file.
+
+    :param path: The path of the PO file to load.
+    :return: The parsed PO file.
+    :raises RuntimeError: If the file cannot be read or parsed.
+    """
+    try:
+        return polib.pofile(str(path))
+    except OSError as exc:
+        raise RuntimeError(f"failed to read PO file '{path}': {exc}") from exc
+
+
+def _extract_lang(path: Path, po: polib.POFile) -> PoLang:
+    """Extract the language of a loaded PO file.
+
+    The ``Language`` metadata field is tried first, then the file name
+    without extension.
+
+    :param path: The path of the PO file, used for fallback and reporting.
+    :param po: The loaded PO file.
+    :return: The language of the PO file.
+    :raises RuntimeError: If no valid language can be extracted.
+    """
+    metadata_language = po.metadata.get("Language")
+    if metadata_language is not None:
+        try:
+            return PoLang(metadata_language)
+        except ValueError:
+            pass
+
+    try:
+        return PoLang(path.stem)
+    except ValueError:
+        pass
+
+    raise RuntimeError(f"can't fetch valid language id in PO file '{path}'")
+
+
+def _translated_text(entry: Optional[polib.POEntry], fallback: str) -> str:
+    """Return the usable translation of an entry.
+
+    :param entry: The PO entry to read, or ``None`` when absent.
+    :param fallback: The source string used when the entry is missing,
+        untranslated or marked fuzzy.
+    :return: The usable translation.
+    """
+    if entry is None or entry.msgstr == "" or entry.fuzzy:
+        return fallback
+    return entry.msgstr
 
 
 def resolve_translations(
@@ -129,56 +183,30 @@ def generate_pot(manifest: Manifest, output_path: Path) -> None:
             )
         )
     po.save(str(output_path))
-    logging.info("Wrote %d entries to POT file '%s'.", len(po), output_path)
+    logging.info("Wrote %d entries to POT file %s.", len(po), output_path)
 
 
-def _load_po(path: Path) -> polib.POFile:
-    """Load and parse a PO file.
+def update_po_files(pot_path: Path, po_paths: Iterable[Path]) -> None:
+    """Update the given PO files in place against a POT template.
 
-    :param path: The path of the PO file to load.
-    :return: The parsed PO file.
-    :raises RuntimeError: If the file cannot be read or parsed.
+    Each PO file is merged with the POT using the ``msgmerge`` tool from GNU
+    gettext: entries are added, removed and marked fuzzy as needed, and the
+    result is written back over the PO file without keeping a backup.
+
+    The msgmerge binary is looked up on PATH; set the ``METAGLOT_MSGMERGE``
+    environment variable to use a specific executable instead.
+
+    :param pot_path: The path of the POT template file.
+    :param po_paths: The PO file paths to update.
+    :raises RuntimeError: If msgmerge fails on a PO file.
     """
-    try:
-        return polib.pofile(str(path))
-    except OSError as exc:
-        raise RuntimeError(f"failed to read PO file '{path}': {exc}") from exc
-
-
-def _extract_lang(path: Path, po: polib.POFile) -> PoLang:
-    """Extract the language of a loaded PO file.
-
-    The ``Language`` metadata field is tried first, then the file name
-    without extension.
-
-    :param path: The path of the PO file, used for fallback and reporting.
-    :param po: The loaded PO file.
-    :return: The language of the PO file.
-    :raises RuntimeError: If no valid language can be extracted.
-    """
-    metadata_language = po.metadata.get("Language")
-    if metadata_language is not None:
-        try:
-            return PoLang(metadata_language)
-        except ValueError:
-            pass
-
-    try:
-        return PoLang(path.stem)
-    except ValueError:
-        pass
-
-    raise RuntimeError(f"can't fetch valid language id in PO file '{path}'")
-
-
-def _translated_text(entry: Optional[polib.POEntry], fallback: str) -> str:
-    """Return the usable translation of an entry.
-
-    :param entry: The PO entry to read, or ``None`` when absent.
-    :param fallback: The source string used when the entry is missing,
-        untranslated or marked fuzzy.
-    :return: The usable translation.
-    """
-    if entry is None or entry.msgstr == "" or entry.fuzzy:
-        return fallback
-    return entry.msgstr
+    msgmerge_bin = os.getenv("METAGLOT_MSGMERGE", "msgmerge")
+    for po_path in po_paths:
+        logging.info("Updating PO by POT: %s -> %s", pot_path, po_path)
+        cmd = [msgmerge_bin, "-U", str(po_path), str(pot_path), "--backup=none"]
+        proc = subprocess.run(cmd, capture_output=False)
+        if proc.returncode != 0:
+            raise RuntimeError(
+                f"failed to update PO file '{po_path}' with msgmerge "
+                f"(return code {proc.returncode})"
+            )
