@@ -18,6 +18,10 @@ def _is_float(s: str) -> bool:
 
 
 def register_general_filters(env: Environment) -> None:
+    """Register the general-purpose Liquid filters available in every rendering.
+
+    :param env: The environment to register the filters on.
+    """
     env.add_filter("to_string", str)
     env.add_filter("format", str.format)
     env.add_filter("to_integer", int)
@@ -30,5 +34,9 @@ def _rc_escape(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
-def register_rc_specific_filters(env: Environment) -> None:
+def register_rc_filters(env: Environment) -> None:
+    """Register the Liquid filters specific to Windows RC file rendering.
+
+    :param env: The environment to register the filters on.
+    """
     env.add_filter("rc_escape", _rc_escape)

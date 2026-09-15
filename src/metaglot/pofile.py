@@ -49,7 +49,7 @@ def resolve_glob_files(patterns: Iterable[Path]) -> Iterator[Path]:
 
 
 def resolve_translations(
-    manifest: Manifest, po_paths: Iterator[Path]
+    manifest: Manifest, po_paths: Iterable[Path]
 ) -> dict[PoLang, LanguagePack]:
     """Resolve the translations of the given PO files against a manifest.
 
@@ -141,7 +141,7 @@ def _load_po(path: Path) -> polib.POFile:
     """
     try:
         return polib.pofile(str(path))
-    except (OSError, IOError) as exc:
+    except OSError as exc:
         raise RuntimeError(f"failed to read PO file '{path}': {exc}") from exc
 
 
