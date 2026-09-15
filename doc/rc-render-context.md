@@ -27,14 +27,16 @@ back to the manifest source string, which is typically English).
 The language of a PO file is resolved from its `Language:` header, falling back to
 the file name without extension; only values valid as Gettext `Language` fields are
 accepted. Languages without a Windows language mapping, two PO files describing the
-same language, and PO entries unknown to the manifest are rejected.
+same language, and PO entries unknown to the manifest are rejected. Languages
+without a country resolve to a neutral language identifier (sublanguage `0x00`),
+e.g. `en` resolves to `0x0009`.
 
 ## Language object
 
 | Property      | Type   | Description |
 |---------------|--------|-------------|
-| `name`        | string | Human-readable language name, e.g. `English (United States)`. |
-| `langid`      | string | Windows language identifier in hexadecimal, e.g. `0x409`. |
+| `name`        | string | The language tag of the PO file, e.g. `en_US`, `zh_CN`. |
+| `langid`      | string | Windows language identifier in hexadecimal, e.g. `0x0409`. |
 | `primary`     | string | Windows primary language identifier in hexadecimal, e.g. `0x09`. |
 | `sublanguage` | string | Windows sublanguage identifier in hexadecimal, e.g. `0x01`. |
 | `block_key`   | string | Eight hex digits combining `langid` and the Unicode code page, suitable as a `StringFileInfo` block key, e.g. `040904B0`. |

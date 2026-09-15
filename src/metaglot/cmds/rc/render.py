@@ -1,9 +1,9 @@
 import logging
 
-from ... import winlang
 from ...cli import RcRenderOpts
 from ...filters import register_general_filters, register_rc_filters
-from ...langid import PoLang
+from ...langid import PoLang, WinLcid
+from ...langmap import win_lcid_map
 from ...manifest import Manifest, load_manifest
 from ...pofile import LanguagePack, resolve_glob_files, resolve_translations
 from ...render import create_environment, render
@@ -16,21 +16,21 @@ constraint of the pipeline, not a configuration point.
 """
 
 
-def _lookup_windows_language(lang: PoLang) -> winlang.WindowsLanguage:
+def _lookup_langid(lang: PoLang) -> WinLcid:
     try:
-        return winlang.lookup(lang.value)
+        return win_lcid_map.lookup(lang)
     except KeyError:
         raise ValueError(f"language '{lang}' has no Windows language mapping") from None
 
 
 def _language_context(pack: LanguagePack, manifest: Manifest) -> dict:
-    language = _lookup_windows_language(pack.lang)
+    lcid = _lookup_langid(pack.lang)
     return {
-        "name": language.name,
-        "langid": f"0x{language.langid:X}",
-        "primary": f"0x{language.primary:02X}",
-        "sublanguage": f"0x{language.sublanguage:02X}",
-        "block_key": f"{language.langid:04X}{_CODE_PAGE:04X}",
+        "name": pack.lang.value,
+        "langid": f"0x{lcid.value:04X}",
+        "primary": f"0x{lcid.primary:02X}",
+        "sublanguage": f"0x{lcid.sublanguage:02X}",
+        "block_key": f"{lcid.value:04X}{_CODE_PAGE:04X}",
         "code_page": f"{_CODE_PAGE}",
         "strings": pack.translations,
     }
