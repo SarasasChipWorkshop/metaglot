@@ -1,24 +1,35 @@
 from ..langid import PoLang, WinLcid
 
-# YYC MARK: The table below is transcribed from the 'Language ID' table in
+
+# YYC MARK:
+# The standard of this convertion procedure can be seen at:
+# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-lcid/70feba9f-294e-491e-b6eb-56532684c37f
+# The adopted version of specification [MS-LCID] is **revision 2024-04-23** .
+#
+# The table below is transcribed from the 'Language ID' table in
 # [MS-LCID] section 2.2 (revision 2024-04-23). Underscore separators in the
 # original language tags have been normalized to hyphens
 # (e.g. 'es-ES_tradnl' -> 'es-ES-tradnl').
-# YYC MARK: Rows whose tags are marked 'reserved' in the document are kept
+#
+# Rows whose tags are marked 'reserved' in the document are kept
 # for transcription fidelity but commented out with a leading '#', so they
 # carry no runtime effect and lookups on them fail.
-# YYC MARK: Rows without a usable language tag are omitted entirely: values
+#
+# Rows without a usable language tag are omitted entirely: values
 # that are neither defined nor reserved, the invariant-locale value 0x007F,
 # the user-default and unspecified placeholders 0x0C00/0x1000 (harmful
 # process-local values that must never be persisted into RC resources), and
 # the transient LCIDs 0x2000-0x4C00.
-# YYC MARK: Rows carrying multiple tags for one value (e.g.
+#
+# Rows carrying multiple tags for one value (e.g.
 # 'ff-NG, ff-Latn-NG') are expanded into consecutive entries sharing the
 # same WinLcid.
-# YYC MARK: The alternate-sort table of section 2.2 (full 4-byte LCIDs with
+#
+# The alternate-sort table of section 2.2 (full 4-byte LCIDs with
 # sort identifiers, e.g. 'de-DE_phoneb' 0x00010407) is not transcribed:
 # WinLcid only models the 2-byte language identifier used by RC resources.
-# YYC MARK: Known contradiction inside the document: the appendix assigns
+#
+# Known contradiction inside the document: the appendix assigns
 # 'quc' -> 0x0086 and 'quc-Latn-GT' -> 0x0486, while the section 2.2 registry
 # has 'qut' -> 0x0086 and marks 'quc' (0x0093), 'qut-GT' (0x0486) and
 # 'quc-CO' (0x0493) as reserved. The section 2.2 registry wins here.

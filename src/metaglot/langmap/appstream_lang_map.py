@@ -1,6 +1,11 @@
 from ..langid import AppStreamLang, PoLang
 
-# YYC MARK: Gettext's variant slot may hold either a script designator or a
+# YYC MARK:
+# AppStream XML file use standard ``xml:lang`` attribute to mark languages and locales.
+# So according to XML standard, the value of it must follow BCP 47.
+
+# YYC MARK:
+# Gettext's variant slot may hold either a script designator or a
 # genuine variant, and BCP 47 places the two at different positions with
 # different vocabularies ('latin' != 'Latn'), so the conversion cannot be
 # done mechanically. Candidate matching is done here as a workaround, with
