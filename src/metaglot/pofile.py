@@ -165,6 +165,22 @@ def resolve_translations(
     return packs
 
 
+def build_default_pack(manifest: Manifest, lang: PoLang) -> LanguagePack:
+    """Build the default language pack of a manifest.
+
+    The pack is built directly from the manifest without reading any PO
+    file: every entry resolves to its own source string. The language of
+    the pack is not derived from a PO file either; callers pass whatever
+    value fits their use.
+
+    :param manifest: The manifest describing all translatable entries.
+    :param lang: The language stamped on the returned pack.
+    :return: The default language pack.
+    """
+    translations = {key: entry.msgid for key, entry in manifest.strings.items()}
+    return LanguagePack(lang, translations)
+
+
 def generate_pot(manifest: Manifest, output_path: Path) -> None:
     """Generate a POT template file from a manifest.
 

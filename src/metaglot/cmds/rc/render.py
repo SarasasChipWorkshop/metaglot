@@ -5,7 +5,12 @@ from ...filters import register_general_filters, register_rc_filters
 from ...langid import PoLang, WinLcid
 from ...langmap import win_lcid_map
 from ...manifest import Manifest, load_manifest
-from ...pofile import LanguagePack, resolve_glob_files, resolve_translations
+from ...pofile import (
+    LanguagePack,
+    build_default_pack,
+    resolve_glob_files,
+    resolve_translations,
+)
 from ...render import create_environment, render
 
 _CODE_PAGE = 1200
@@ -39,6 +44,12 @@ def _language_context(pack: LanguagePack, manifest: Manifest) -> dict:
 def run(opts: RcRenderOpts) -> None:
     manifest = load_manifest(opts.in_manifest)
     packs = resolve_translations(manifest, resolve_glob_files(opts.in_po))
+    # The manifest's source language is always rendered: taken from a PO file
+    # when available, synthesized from the source strings otherwise.
+    if manifest.source_language not in packs:
+        packs[manifest.source_language] = build_default_pack(
+            manifest, manifest.source_language
+        )
     languages = [_language_context(pack, manifest) for pack in packs.values()]
     logging.info(
         "rendering languages: %s",

@@ -9,6 +9,7 @@ The manifest is platform-neutral. It only describes *what* can be translated, no
 | Field | Type | Description |
 |---|---|---|
 | `version` | int | The manifest format version. Currently `1`; any other value is rejected. |
+| `source_language` | string | Required. The language of the source strings (`msgid`). Must be a valid Gettext `Language` field value, e.g. `en`, `en_US`. |
 | `strings` | table | All translatable strings. Each item maps a string entry key to a string entry, see below. |
 
 ## String Entry
@@ -26,6 +27,7 @@ The string entry key identifies the entry inside the manifest and in generated o
 A manifest is rejected when:
 
 - `version` is not matched with current value introduced above.
+- `source_language` is missing or not a valid language tag.
 - Any string entry key is empty.
 - Two entries share both `msgid` and `context`.
 - An entry or the document root contains unknown fields.
@@ -34,6 +36,7 @@ A manifest is rejected when:
 
 ```toml
 version = 1
+source_language = "en"
 
 [strings.panel_title]
 msgid = "Example - Image Viewer"

@@ -1,4 +1,5 @@
 version = 1
+source_language = "en"
 
 [strings.1000]
 msgid = "Example - Image Viewer"

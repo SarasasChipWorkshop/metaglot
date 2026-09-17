@@ -12,7 +12,12 @@ The renderer runs in strict mode: referencing a variable or a property that does
 |---|---|---|
 | `languages` | array of language | One entry per language, see below. |
 
-The order of the entries is not guaranteed: they appear in the order their PO files are matched. The presence of an English entry is not guaranteed either. An English entry exists only if an English PO file is provided; otherwise it is simply absent, and templates must handle that themselves (the text of every entry already falls back to the manifest source string, which is typically English).
+The order of the entries is not guaranteed: they appear in the order their PO files
+are matched, with a synthesized entry (see below) appended last. The manifest's
+source language is always present: it comes from a PO file when one provides it,
+and is otherwise synthesized from the manifest's source strings — a manifest
+declaring `source_language = "en"` yields a neutral `en` entry (`0x0009`), while
+`"en_US"` yields `0x0409`.
 
 The language of a PO file is resolved from its `Language:` header, falling back to the file name without extension; only values valid as Gettext `Language` fields are accepted. Languages without a Windows language mapping, two PO files describing the same language, and PO entries unknown to the manifest are rejected. Languages without a country resolve to a neutral language identifier (sublanguage `0x00`), e.g. `en` resolves to `0x0009`.
 

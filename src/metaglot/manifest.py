@@ -1,7 +1,16 @@
 import tomllib
-from typing import Optional
+from typing import Annotated, Optional
 from pathlib import Path
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    GetPydanticSchema,
+    field_validator,
+    model_validator,
+)
+from pydantic_core import core_schema
+
+from .langid import PoLang
 
 MANIFEST_VERSION = 1
 """The manifest format version this build of MetaGlot understands."""
@@ -18,11 +27,32 @@ class StringEntry(BaseModel, frozen=True):
     """Translator-oriented comment of this entry. ``None`` if nothing."""
 
 
+def _validate_po_lang(value) -> PoLang:
+    if isinstance(value, PoLang):
+        return value
+    return PoLang(value)
+
+
+def _po_lang_schema(source_type, handler) -> core_schema.CoreSchema:
+    """Describe how pydantic validates a ``PoLang`` field.
+
+    The whole validation is delegated to :func:`_validate_po_lang`, which
+    accepts any value parseable by ``PoLang``. This keeps the field typed
+    as ``PoLang`` without enabling ``arbitrary_types_allowed`` on the model.
+    """
+    return core_schema.no_info_plain_validator_function(
+        _validate_po_lang,
+        serialization=core_schema.to_string_ser_schema(),
+    )
+
+
 class Manifest(BaseModel, frozen=True):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     version: int
     """The version of this manifest file."""
+    source_language: Annotated[PoLang, GetPydanticSchema(_po_lang_schema)]
+    """The language of the source strings (``msgid``)."""
     strings: dict[str, StringEntry]
     """The list holding all strings to be translated."""
 
