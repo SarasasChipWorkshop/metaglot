@@ -1,6 +1,8 @@
 import logging
-
-from ...cli import DesktopRenderOpts
+from argparse import ArgumentParser
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 from ...filters import register_desktop_filters, register_general_filters
 from ...langmap import desktop_lang_map
 from ...manifest import Manifest, load_manifest
@@ -11,6 +13,76 @@ from ...pofile import (
     resolve_translations,
 )
 from ...render import create_environment, render
+
+_MANIFEST_DEST = "manifest"
+_PO_DEST = "po"
+_TEMPLATE_DEST = "template"
+_OUTPUT_DEST = "output"
+
+
+@dataclass(frozen=True)
+class DesktopRenderOpts:
+    in_manifest: Path
+    """The path to input manifest file including translation strings."""
+    in_po: list[Path]
+    """The path to input PO files to read, each may be a glob pattern."""
+    in_template: Path
+    """The path to the input user-provided Liquid for rendering."""
+    out_desktop: Path
+    """The path of the output rendered desktop entry file."""
+
+
+def register(parser: ArgumentParser) -> None:
+    parser.add_argument(
+        "-m",
+        "--manifest",
+        dest=_MANIFEST_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to input manifest file including translation strings.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-p",
+        "--po",
+        dest=_PO_DEST,
+        action="extend",
+        nargs="+",
+        type=Path,
+        required=True,
+        help="The PO files to read, each may be a glob pattern.",
+        metavar="GLOB",
+    )
+    parser.add_argument(
+        "-t",
+        "--template",
+        dest=_TEMPLATE_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to the input user-provided Liquid for rendering.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest=_OUTPUT_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path of the output rendered desktop entry file.",
+        metavar="FILE",
+    )
+
+
+def parse(args: dict[str, Any]) -> DesktopRenderOpts:
+    return DesktopRenderOpts(
+        args[_MANIFEST_DEST],
+        args[_PO_DEST],
+        args[_TEMPLATE_DEST],
+        args[_OUTPUT_DEST],
+    )
 
 
 def _language_context(pack: LanguagePack, manifest: Manifest) -> dict:

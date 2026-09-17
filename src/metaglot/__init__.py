@@ -1,12 +1,19 @@
 import logging
 import sys
-from .cli import parse
-from .cmds import run
+from argparse import ArgumentParser
+from .cmds import run, register, parse
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
-    opts = parse()
+
+    parser = ArgumentParser(
+        prog="metaglot",
+        description="A command-line tool that unifies localization metadata for applications shipped on multiple platforms.",
+    )
+    register(parser)
+    args = vars(parser.parse_args())
+    opts = parse(args)
 
     try:
         run(opts)
