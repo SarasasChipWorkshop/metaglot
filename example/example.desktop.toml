@@ -1,0 +1,18 @@
+version = 1
+source_language = "en"
+
+[strings.name]
+msgid = "Example"
+comment = "Display name of the application."
+
+[strings.generic_name]
+msgid = "Image Viewer"
+comment = "Generic name describing the application category."
+
+[strings.comment]
+msgid = "A lightweight image viewer"
+comment = "Tooltip-like description of the application."
+
+[strings.keywords]
+msgid = "Picture;Image;Viewer;"
+comment = "Search keywords. Semicolon separated list; the trailing semicolon is required."

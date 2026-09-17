@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Name={{ default.strings.name | desktop_escape }}
+GenericName={{ default.strings.generic_name | desktop_escape }}
+Comment={{ default.strings.comment | desktop_escape }}
+Exec=example %F
+Icon=org.example.Example
+Terminal=false
+StartupNotify=false
+Categories=Graphics;
+MimeType=image/bmp;image/jpeg;image/png;image/svg+xml;
+Keywords={{ default.strings.keywords | desktop_escape }}
+{% for lang in languages %}Name[{{ lang.locale }}]={{ lang.strings.name | desktop_escape }}
+GenericName[{{ lang.locale }}]={{ lang.strings.generic_name | desktop_escape }}
+Comment[{{ lang.locale }}]={{ lang.strings.comment | desktop_escape }}
+Keywords[{{ lang.locale }}]={{ lang.strings.keywords | desktop_escape }}
+{% endfor %}

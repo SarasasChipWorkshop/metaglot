@@ -127,6 +127,133 @@ class PoLang:
     # endregion
 
 
+class DesktopLang:
+    """
+    Represents a freedesktop.org desktop entry locale, i.e. the ``LOCALE``
+    postfix of a localized key (see the Desktop Entry Specification,
+    section 5 "Localized values for keys").
+
+    Supported formats:
+        ll              - ISO 639 language code (2 or 3 letters, lowercase)
+        ll_CC           - language code + ISO 3166 country code (uppercase)
+        ll@modifier     - language code + modifier
+        ll_CC@modifier  - language code + country code + modifier
+
+    The ``.ENCODING`` part of the specification's grammar is deliberately
+    not modeled: it is ignored when matching locales and never written by
+    real world desktop entry files.
+
+    Examples:
+        DesktopLang("en")          # valid
+        DesktopLang("zh_CN")       # valid
+        DesktopLang("sr@Latn")     # valid (modifier without country)
+        DesktopLang("sr_RS@latin") # valid
+        DesktopLang("EN")          # invalid (language code must be lowercase)
+    """
+
+    __PATTERN: ClassVar[re.Pattern] = re.compile(
+        r"^(?P<language>[a-z]{2,3})"
+        r"(?:_(?P<country>[A-Z]{2}))?"
+        r"(?:@(?P<modifier>[a-zA-Z][a-zA-Z0-9-]*))?$"
+    )
+
+    __language_code: str
+    """ISO 639 two-letter or three-letter language code (lowercase)."""
+    __country_code: Optional[str]
+    """ISO 3166 two-letter country code (uppercase) or no presented."""
+    __modifier: Optional[str]
+    """The modifier designator, such as 'latin' or 'Latn'."""
+
+    def __init__(self, value: str):
+        match = self.__PATTERN.match(value)
+        if not match:
+            raise ValueError(
+                f"Invalid desktop locale format: {value!r}. "
+                f"Expected 'll', 'll_CC', 'll@modifier' or 'll_CC@modifier'"
+            )
+
+        self.__language_code = match.group("language")
+        self.__country_code = match.group("country")  # may be None
+        self.__modifier = match.group("modifier")  # may be None
+
+        self.__validate_language(self.__language_code)
+        if self.__country_code:
+            self.__validate_country(self.__country_code)
+
+    # region: Internal validation helpers
+
+    @staticmethod
+    def __validate_language(language_code: str) -> None:
+        """Validate the language code as an ISO 639 code using pycountry."""
+        lang = pycountry.languages.get(alpha_2=language_code)
+        if lang is None:
+            lang = pycountry.languages.get(alpha_3=language_code)
+        if lang is None:
+            raise ValueError(f"Invalid language code: {language_code!r}")
+
+    @staticmethod
+    def __validate_country(country_code: str) -> None:
+        """Validate the country code as an ISO 3166 alpha-2 code using pycountry."""
+        country = pycountry.countries.get(alpha_2=country_code)
+        if country is None:
+            raise ValueError(f"Invalid country code: {country_code!r}")
+
+    # endregion
+
+    # region: Properties
+
+    @property
+    def language(self) -> str:
+        """The lowercase language code."""
+        return self.__language_code
+
+    @property
+    def country(self) -> str | None:
+        """The uppercase country code, or None if not specified."""
+        return self.__country_code
+
+    @property
+    def modifier(self) -> str | None:
+        """The modifier identifier, or None if not specified."""
+        return self.__modifier
+
+    @property
+    def value(self) -> str:
+        """The canonical string representation, rebuilt from the components."""
+        result = self.__language_code
+        if self.__country_code is not None:
+            result += f"_{self.__country_code}"
+        if self.__modifier is not None:
+            result += f"@{self.__modifier}"
+        return result
+
+    # endregion
+
+    # region: Object methods
+
+    def __str__(self) -> str:
+        return self.value
+
+    def __repr__(self) -> str:
+        return f"DesktopLang({self.value!r})"
+
+    def __eq__(self, other) -> bool:
+        if self is other:
+            return True
+        if not isinstance(other, DesktopLang):
+            return NotImplemented
+        return (
+            self.__language_code == other.__language_code
+            and self.__country_code == other.__country_code
+            and self.__modifier == other.__modifier
+        )
+
+    def __hash__(self) -> int:
+        return hash((self.__language_code, self.__country_code, self.__modifier))
+
+    # endregion
+
+
 class WinLcid:
     """
     Represents a Windows language identifier (LANGID), the 2-byte language

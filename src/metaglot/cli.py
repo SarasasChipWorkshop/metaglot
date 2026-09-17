@@ -47,15 +47,56 @@ class RcCommand(enum.StrEnum):
 
 
 @dataclass(frozen=True)
+class DesktopPotOpts:
+    in_manifest: Path
+    """The path to input manifest file including translation strings."""
+    out_pot: Path
+    """The path to output POT file."""
+
+
+@dataclass(frozen=True)
+class DesktopRenderOpts:
+    in_manifest: Path
+    """The path to input manifest file including translation strings."""
+    in_po: list[Path]
+    """The path to input PO files to read, each may be a glob pattern."""
+    in_template: Path
+    """The path to the input user-provided Liquid for rendering."""
+    out_desktop: Path
+    """The path to the output rendered desktop entry file."""
+
+
+@dataclass(frozen=True)
+class DesktopUpdateOpts:
+    in_pot: Path
+    """The path to the input POT template file."""
+    in_po: list[Path]
+    """The path to input PO files to update, each may be a glob pattern."""
+
+
+@dataclass(frozen=True)
+class DesktopOpts:
+    opts: DesktopPotOpts | DesktopRenderOpts | DesktopUpdateOpts
+    """The option of one of subcommand."""
+
+
+class DesktopCommand(enum.StrEnum):
+    Pot = "pot"
+    Render = "render"
+    Update = "update"
+
+
+@dataclass(frozen=True)
 class Opts:
     """The root options."""
 
-    opts: RcOpts
+    opts: RcOpts | DesktopOpts
     """The option of one of subcommand."""
 
 
 class Command(enum.StrEnum):
     Rc = "rc"
+    Desktop = "desktop"
 
 
 # endregion
@@ -64,6 +105,7 @@ class Command(enum.StrEnum):
 
 _SUBCMD_DEST = "command"
 _RC_SUBCMD_DEST = "rc_command"
+_DESKTOP_SUBCMD_DEST = "desktop_command"
 
 
 _RC_POT_MANIFEST_DEST = "manifest"
@@ -76,6 +118,17 @@ _RC_RDR_OUTPUT_DEST = "output"
 
 _RC_UPD_POT_DEST = "pot"
 _RC_UPD_PO_DEST = "po"
+
+_DESKTOP_POT_MANIFEST_DEST = "manifest"
+_DESKTOP_POT_OUTPUT_DEST = "output"
+
+_DESKTOP_RDR_MANIFEST_DEST = "manifest"
+_DESKTOP_RDR_PO_DEST = "po"
+_DESKTOP_RDR_TEMPLATE_DEST = "template"
+_DESKTOP_RDR_OUTPUT_DEST = "output"
+
+_DESKTOP_UPD_POT_DEST = "pot"
+_DESKTOP_UPD_PO_DEST = "po"
 
 
 def _register_rc_pot_param(parser: ArgumentParser) -> None:
@@ -186,12 +239,125 @@ def _register_rc_param(parser: ArgumentParser) -> None:
     _register_rc_update_param(update_subcmd)
 
 
+def _register_desktop_pot_param(parser: ArgumentParser) -> None:
+    parser.add_argument(
+        "-m",
+        "--manifest",
+        dest=_DESKTOP_POT_MANIFEST_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to input manifest file including translation strings.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest=_DESKTOP_POT_OUTPUT_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to output POT file.",
+        metavar="FILE",
+    )
+
+
+def _register_desktop_render_param(parser: ArgumentParser) -> None:
+    parser.add_argument(
+        "-m",
+        "--manifest",
+        dest=_DESKTOP_RDR_MANIFEST_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to input manifest file including translation strings.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-p",
+        "--po",
+        dest=_DESKTOP_RDR_PO_DEST,
+        action="extend",
+        nargs="+",
+        type=Path,
+        required=True,
+        help="The PO files to read, each may be a glob pattern.",
+        metavar="GLOB",
+    )
+    parser.add_argument(
+        "-t",
+        "--template",
+        dest=_DESKTOP_RDR_TEMPLATE_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to the input user-provided Liquid for rendering.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest=_DESKTOP_RDR_OUTPUT_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to the output rendered desktop entry file.",
+        metavar="FILE",
+    )
+
+
+def _register_desktop_update_param(parser: ArgumentParser) -> None:
+    parser.add_argument(
+        "-t",
+        "--pot",
+        dest=_DESKTOP_UPD_POT_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to the input POT template file.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-p",
+        "--po",
+        dest=_DESKTOP_UPD_PO_DEST,
+        action="extend",
+        nargs="+",
+        type=Path,
+        required=True,
+        help="The PO files to update, each may be a glob pattern.",
+        metavar="GLOB",
+    )
+
+
+def _register_desktop_param(parser: ArgumentParser) -> None:
+    cmds = parser.add_subparsers(dest=_DESKTOP_SUBCMD_DEST, required=True)
+    pot_subcmd = cmds.add_parser(
+        DesktopCommand.Pot.value,
+        help="Generate a POT template from given manifest.",
+    )
+    _register_desktop_pot_param(pot_subcmd)
+    render_subcmd = cmds.add_parser(
+        DesktopCommand.Render.value,
+        help="Render a user-provided template with manifest data and PO translations.",
+    )
+    _register_desktop_render_param(render_subcmd)
+    update_subcmd = cmds.add_parser(
+        DesktopCommand.Update.value, help="Update PO files against a POT template."
+    )
+    _register_desktop_update_param(update_subcmd)
+
+
 def _register_param(parser: ArgumentParser) -> None:
     cmds = parser.add_subparsers(dest=_SUBCMD_DEST, required=True)
     rc_subcmd = cmds.add_parser(
         Command.Rc.value, help="Commands for Windows RC resource files."
     )
     _register_rc_param(rc_subcmd)
+    desktop_subcmd = cmds.add_parser(
+        Command.Desktop.value, help="Commands for freedesktop desktop entry files."
+    )
+    _register_desktop_param(desktop_subcmd)
 
 
 # endregion
@@ -235,6 +401,31 @@ def parse() -> Opts:
                 case _:
                     raise ValueError(f"unhandled rc command: {args[_RC_SUBCMD_DEST]}")
             opts = Opts(rc_opts)
+        case Command.Desktop:
+            match DesktopCommand(args[_DESKTOP_SUBCMD_DEST]):
+                case DesktopCommand.Pot:
+                    desktop_pot_opts = DesktopPotOpts(
+                        args[_DESKTOP_POT_MANIFEST_DEST], args[_DESKTOP_POT_OUTPUT_DEST]
+                    )
+                    desktop_opts = DesktopOpts(desktop_pot_opts)
+                case DesktopCommand.Render:
+                    desktop_rdr_opts = DesktopRenderOpts(
+                        args[_DESKTOP_RDR_MANIFEST_DEST],
+                        args[_DESKTOP_RDR_PO_DEST],
+                        args[_DESKTOP_RDR_TEMPLATE_DEST],
+                        args[_DESKTOP_RDR_OUTPUT_DEST],
+                    )
+                    desktop_opts = DesktopOpts(desktop_rdr_opts)
+                case DesktopCommand.Update:
+                    desktop_upd_opts = DesktopUpdateOpts(
+                        args[_DESKTOP_UPD_POT_DEST], args[_DESKTOP_UPD_PO_DEST]
+                    )
+                    desktop_opts = DesktopOpts(desktop_upd_opts)
+                case _:
+                    raise ValueError(
+                        f"unhandled desktop command: {args[_DESKTOP_SUBCMD_DEST]}"
+                    )
+            opts = Opts(desktop_opts)
         case _:
             raise ValueError(f"unhandled command: {args[_SUBCMD_DEST]}")
     return opts

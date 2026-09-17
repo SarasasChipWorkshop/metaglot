@@ -40,3 +40,31 @@ def register_rc_filters(env: Environment) -> None:
     :param env: The environment to register the filters on.
     """
     env.add_filter("rc_escape", _rc_escape)
+
+
+def _desktop_escape(value: str) -> str:
+    """Escape a desktop entry string value (see the Desktop Entry
+    Specification, section 4 "Possible value types").
+
+    Backslash, newline, carriage return and tab are escaped everywhere.
+    Spaces are additionally escaped as ``\\s`` when leading or trailing,
+    where parsers may trim them away.
+    """
+    core = (
+        value.replace("\\", "\\\\")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
+    lstripped = core.lstrip(" ")
+    leading = len(core) - len(lstripped)
+    trailing = len(lstripped) - len(lstripped.rstrip(" "))
+    return "\\s" * leading + lstripped.rstrip(" ") + "\\s" * trailing
+
+
+def register_desktop_filters(env: Environment) -> None:
+    """Register the Liquid filters specific to desktop entry file rendering.
+
+    :param env: The environment to register the filters on.
+    """
+    env.add_filter("desktop_escape", _desktop_escape)
