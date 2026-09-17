@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="desktop-application">
+  <id>org.example.Example</id>
+  <name>{{ default.strings.name | xml_escape }}</name>
+{% for lang in languages %}  <name xml:lang="{{ lang.lang }}">{{ lang.strings.name | xml_escape }}</name>
+{% endfor %}  <summary>{{ default.strings.summary | xml_escape }}</summary>
+{% for lang in languages %}  <summary xml:lang="{{ lang.lang }}">{{ lang.strings.summary | xml_escape }}</summary>
+{% endfor %}  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>{{ default.strings.description | xml_escape }}</p>
+{% for lang in languages %}    <p xml:lang="{{ lang.lang }}">{{ lang.strings.description | xml_escape }}</p>
+{% endfor %}  </description>
+  <developer id="org.example">
+    <name>{{ default.strings.developer_name | xml_escape }}</name>
+{% for lang in languages %}    <name xml:lang="{{ lang.lang }}">{{ lang.strings.developer_name | xml_escape }}</name>
+{% endfor %}  </developer>
+  <launchable type="desktop-id">org.example.Example.desktop</launchable>
+  <url type="homepage">https://example.org/example</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>{{ default.strings.screenshot_caption | xml_escape }}</caption>
+{% for lang in languages %}      <caption xml:lang="{{ lang.lang }}">{{ lang.strings.screenshot_caption | xml_escape }}</caption>
+{% endfor %}      <image type="source">https://example.org/example/screenshot.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+</component>

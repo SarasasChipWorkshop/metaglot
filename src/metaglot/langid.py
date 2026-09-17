@@ -1,5 +1,6 @@
 import re
 from typing import ClassVar, Optional
+import langcodes
 import pycountry
 
 
@@ -250,6 +251,101 @@ class DesktopLang:
 
     def __hash__(self) -> int:
         return hash((self.__language_code, self.__country_code, self.__modifier))
+
+    # endregion
+
+
+class AppStreamLang:
+    """
+    Represents a BCP 47 language tag, as required by the ``xml:lang``
+    attribute values of AppStream XML files.
+
+    Validation and serialization are delegated to the core of the
+    ``langcodes`` library (without its optional ``data`` extra). The whole
+    of BCP 47 is therefore accepted, and subtags are checked against the
+    IANA registry: ``zh-CN``, ``sr-Latn-RS`` and ``ca-ES-valencia`` are
+    valid, while ``jp`` and the unregistered variant ``euro`` are not.
+
+    Tags are case-insensitive per BCP 47, and close-but-nonstandard
+    spellings are normalized: ``zh-cn`` and ``zh_CN`` both canonicalize
+    to ``zh-CN``.
+
+    Deliberate usage policy: MetaGlot only parses, validates and
+    serializes tags through this class. It never calls
+    ``langcodes.standardize_tag`` nor enables macro language collapsing,
+    so an emitted ``xml:lang`` is always a faithful hyphenation of its
+    Gettext source tag - no script injection, no redundant-script
+    removal, no macrolanguage folding.
+
+    Examples:
+        AppStreamLang("zh-CN")        # valid
+        AppStreamLang("sr-Latn-RS")   # valid
+        AppStreamLang("zh_CN")        # valid, normalizes to "zh-CN"
+        AppStreamLang("de-DE-euro")   # invalid (unregistered variant)
+        AppStreamLang("jp")           # invalid (not a language code)
+    """
+
+    __lang: langcodes.Language
+    """The underlying langcodes language object."""
+
+    def __init__(self, value: str):
+        try:
+            lang = langcodes.Language.get(value)
+        except ValueError as exc:
+            raise ValueError(
+                f"Invalid BCP 47 language tag: {value!r}. ({exc})"
+            ) from exc
+        if not lang.is_valid():
+            raise ValueError(f"Invalid BCP 47 language tag: {value!r}")
+        self.__lang = lang
+
+    # region: Properties
+
+    @property
+    def language(self) -> Optional[str]:
+        """The lowercase language subtag, or None if unspecified."""
+        return self.__lang.language
+
+    @property
+    def script(self) -> Optional[str]:
+        """The title-case script subtag, or None if not specified."""
+        return self.__lang.script
+
+    @property
+    def territory(self) -> Optional[str]:
+        """The uppercase territory subtag, or None if not specified."""
+        return self.__lang.territory
+
+    @property
+    def variant(self) -> Optional[str]:
+        """The first variant subtag, or None if not specified."""
+        variants = self.__lang.variants or []
+        return variants[0] if variants else None
+
+    @property
+    def value(self) -> str:
+        """The canonical string form, in BCP 47 conventional casing."""
+        return str(self.__lang)
+
+    # endregion
+
+    # region: Object methods
+
+    def __str__(self) -> str:
+        return self.value
+
+    def __repr__(self) -> str:
+        return f"AppStreamLang({self.value!r})"
+
+    def __eq__(self, other) -> bool:
+        if self is other:
+            return True
+        if not isinstance(other, AppStreamLang):
+            return NotImplemented
+        return self.value == other.value
+
+    def __hash__(self) -> int:
+        return hash(self.value)
 
     # endregion
 

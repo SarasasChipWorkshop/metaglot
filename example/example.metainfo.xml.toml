@@ -1,0 +1,22 @@
+version = 1
+source_language = "en"
+
+[strings.name]
+msgid = "Example"
+comment = "Display name of the application."
+
+[strings.summary]
+msgid = "A lightweight image viewer"
+comment = "One-line summary shown in software centers."
+
+[strings.description]
+msgid = "Example is a lightweight and easy-to-use image viewer. It focuses on viewing images and does not include any image management features."
+comment = "Description paragraph shown in the details page."
+
+[strings.developer_name]
+msgid = "Example contributors"
+comment = "Name of the application developers."
+
+[strings.screenshot_caption]
+msgid = "Main window when an image file is loaded"
+comment = "Caption of the primary screenshot."

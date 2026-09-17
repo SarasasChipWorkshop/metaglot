@@ -87,16 +87,57 @@ class DesktopCommand(enum.StrEnum):
 
 
 @dataclass(frozen=True)
+class AppStreamPotOpts:
+    in_manifest: Path
+    """The path to input manifest file including translation strings."""
+    out_pot: Path
+    """The path to output POT file."""
+
+
+@dataclass(frozen=True)
+class AppStreamRenderOpts:
+    in_manifest: Path
+    """The path to input manifest file including translation strings."""
+    in_po: list[Path]
+    """The path to input PO files to read, each may be a glob pattern."""
+    in_template: Path
+    """The path to the input user-provided Liquid for rendering."""
+    out_appstream: Path
+    """The path to the output rendered AppStream XML file."""
+
+
+@dataclass(frozen=True)
+class AppStreamUpdateOpts:
+    in_pot: Path
+    """The path to the input POT template file."""
+    in_po: list[Path]
+    """The path to input PO files to update, each may be a glob pattern."""
+
+
+@dataclass(frozen=True)
+class AppStreamOpts:
+    opts: AppStreamPotOpts | AppStreamRenderOpts | AppStreamUpdateOpts
+    """The option of one of subcommand."""
+
+
+class AppStreamCommand(enum.StrEnum):
+    Pot = "pot"
+    Render = "render"
+    Update = "update"
+
+
+@dataclass(frozen=True)
 class Opts:
     """The root options."""
 
-    opts: RcOpts | DesktopOpts
+    opts: RcOpts | DesktopOpts | AppStreamOpts
     """The option of one of subcommand."""
 
 
 class Command(enum.StrEnum):
     Rc = "rc"
     Desktop = "desktop"
+    Appstream = "appstream"
 
 
 # endregion
@@ -129,6 +170,19 @@ _DESKTOP_RDR_OUTPUT_DEST = "output"
 
 _DESKTOP_UPD_POT_DEST = "pot"
 _DESKTOP_UPD_PO_DEST = "po"
+
+_APPSTREAM_SUBCMD_DEST = "appstream_command"
+
+_APPSTREAM_POT_MANIFEST_DEST = "manifest"
+_APPSTREAM_POT_OUTPUT_DEST = "output"
+
+_APPSTREAM_RDR_MANIFEST_DEST = "manifest"
+_APPSTREAM_RDR_PO_DEST = "po"
+_APPSTREAM_RDR_TEMPLATE_DEST = "template"
+_APPSTREAM_RDR_OUTPUT_DEST = "output"
+
+_APPSTREAM_UPD_POT_DEST = "pot"
+_APPSTREAM_UPD_PO_DEST = "po"
 
 
 def _register_rc_pot_param(parser: ArgumentParser) -> None:
@@ -348,6 +402,115 @@ def _register_desktop_param(parser: ArgumentParser) -> None:
     _register_desktop_update_param(update_subcmd)
 
 
+def _register_appstream_pot_param(parser: ArgumentParser) -> None:
+    parser.add_argument(
+        "-m",
+        "--manifest",
+        dest=_APPSTREAM_POT_MANIFEST_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to input manifest file including translation strings.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest=_APPSTREAM_POT_OUTPUT_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to output POT file.",
+        metavar="FILE",
+    )
+
+
+def _register_appstream_render_param(parser: ArgumentParser) -> None:
+    parser.add_argument(
+        "-m",
+        "--manifest",
+        dest=_APPSTREAM_RDR_MANIFEST_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to input manifest file including translation strings.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-p",
+        "--po",
+        dest=_APPSTREAM_RDR_PO_DEST,
+        action="extend",
+        nargs="+",
+        type=Path,
+        required=True,
+        help="The PO files to read, each may be a glob pattern.",
+        metavar="GLOB",
+    )
+    parser.add_argument(
+        "-t",
+        "--template",
+        dest=_APPSTREAM_RDR_TEMPLATE_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to the input user-provided Liquid for rendering.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        dest=_APPSTREAM_RDR_OUTPUT_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to the output rendered AppStream XML file.",
+        metavar="FILE",
+    )
+
+
+def _register_appstream_update_param(parser: ArgumentParser) -> None:
+    parser.add_argument(
+        "-t",
+        "--pot",
+        dest=_APPSTREAM_UPD_POT_DEST,
+        action="store",
+        type=Path,
+        required=True,
+        help="The path to the input POT template file.",
+        metavar="FILE",
+    )
+    parser.add_argument(
+        "-p",
+        "--po",
+        dest=_APPSTREAM_UPD_PO_DEST,
+        action="extend",
+        nargs="+",
+        type=Path,
+        required=True,
+        help="The PO files to update, each may be a glob pattern.",
+        metavar="GLOB",
+    )
+
+
+def _register_appstream_param(parser: ArgumentParser) -> None:
+    cmds = parser.add_subparsers(dest=_APPSTREAM_SUBCMD_DEST, required=True)
+    pot_subcmd = cmds.add_parser(
+        AppStreamCommand.Pot.value,
+        help="Generate a POT template from given manifest.",
+    )
+    _register_appstream_pot_param(pot_subcmd)
+    render_subcmd = cmds.add_parser(
+        AppStreamCommand.Render.value,
+        help="Render a user-provided template with manifest data and PO translations.",
+    )
+    _register_appstream_render_param(render_subcmd)
+    update_subcmd = cmds.add_parser(
+        AppStreamCommand.Update.value, help="Update PO files against a POT template."
+    )
+    _register_appstream_update_param(update_subcmd)
+
+
 def _register_param(parser: ArgumentParser) -> None:
     cmds = parser.add_subparsers(dest=_SUBCMD_DEST, required=True)
     rc_subcmd = cmds.add_parser(
@@ -358,6 +521,10 @@ def _register_param(parser: ArgumentParser) -> None:
         Command.Desktop.value, help="Commands for freedesktop desktop entry files."
     )
     _register_desktop_param(desktop_subcmd)
+    appstream_subcmd = cmds.add_parser(
+        Command.Appstream.value, help="Commands for AppStream metainfo XML files."
+    )
+    _register_appstream_param(appstream_subcmd)
 
 
 # endregion
@@ -426,6 +593,32 @@ def parse() -> Opts:
                         f"unhandled desktop command: {args[_DESKTOP_SUBCMD_DEST]}"
                     )
             opts = Opts(desktop_opts)
+        case Command.Appstream:
+            match AppStreamCommand(args[_APPSTREAM_SUBCMD_DEST]):
+                case AppStreamCommand.Pot:
+                    appstream_pot_opts = AppStreamPotOpts(
+                        args[_APPSTREAM_POT_MANIFEST_DEST],
+                        args[_APPSTREAM_POT_OUTPUT_DEST],
+                    )
+                    appstream_opts = AppStreamOpts(appstream_pot_opts)
+                case AppStreamCommand.Render:
+                    appstream_rdr_opts = AppStreamRenderOpts(
+                        args[_APPSTREAM_RDR_MANIFEST_DEST],
+                        args[_APPSTREAM_RDR_PO_DEST],
+                        args[_APPSTREAM_RDR_TEMPLATE_DEST],
+                        args[_APPSTREAM_RDR_OUTPUT_DEST],
+                    )
+                    appstream_opts = AppStreamOpts(appstream_rdr_opts)
+                case AppStreamCommand.Update:
+                    appstream_upd_opts = AppStreamUpdateOpts(
+                        args[_APPSTREAM_UPD_POT_DEST], args[_APPSTREAM_UPD_PO_DEST]
+                    )
+                    appstream_opts = AppStreamOpts(appstream_upd_opts)
+                case _:
+                    raise ValueError(
+                        f"unhandled appstream command: {args[_APPSTREAM_SUBCMD_DEST]}"
+                    )
+            opts = Opts(appstream_opts)
         case _:
             raise ValueError(f"unhandled command: {args[_SUBCMD_DEST]}")
     return opts

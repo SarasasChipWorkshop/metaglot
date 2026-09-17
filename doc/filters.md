@@ -40,6 +40,20 @@ The following filters are available only when rendering desktop entry files.
 |---|---|
 | `desktop_escape` | Escapes a string for use as a desktop entry `string`, `localestring` or `iconstring` value: `\` becomes `\\`, newline becomes `\n`, carriage return becomes `\r` and tab becomes `\t` anywhere; leading and trailing spaces become `\s`. Semicolons are not escaped, because they separate the values of plural keys (e.g. `Keywords`); escape them with the standard `replace` filter when composing such values item by item. |
 
+## AppStream Filters
+
+The following filters are available only when rendering AppStream XML files.
+
+| Filter | Description |
+|---|---|
+| `xml_escape` | Escapes a string for use in XML text content or attribute values: `&` becomes `&amp;`, `<` becomes `&lt;`, `>` becomes `&gt;`, `"` becomes `&quot;` and `'` becomes `&apos;`. Values that intentionally carry AppStream markup (e.g. `<em>` inside descriptions) must not be passed through this filter; whether to escape is the template author's decision. |
+
+Examples:
+
+```liquid
+{{ "Example" | xml_escape }}  {% comment %}renders "Example"{% endcomment %}
+```
+
 Examples:
 
 ```liquid

@@ -68,3 +68,27 @@ def register_desktop_filters(env: Environment) -> None:
     :param env: The environment to register the filters on.
     """
     env.add_filter("desktop_escape", _desktop_escape)
+
+
+def _xml_escape(value: str) -> str:
+    """Escape a string for use in XML text content or attribute values.
+
+    The five predefined XML entities are produced: ``&`` becomes ``&amp;``,
+    ``<`` becomes ``&lt;``, ``>`` becomes ``&gt;``, ``"`` becomes ``&quot;``
+    and ``'`` becomes ``&apos;``.
+    """
+    return (
+        value.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&apos;")
+    )
+
+
+def register_appstream_filters(env: Environment) -> None:
+    """Register the Liquid filters specific to AppStream XML file rendering.
+
+    :param env: The environment to register the filters on.
+    """
+    env.add_filter("xml_escape", _xml_escape)
