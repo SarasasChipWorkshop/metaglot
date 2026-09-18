@@ -2,14 +2,14 @@ from argparse import ArgumentParser
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from ...pofile import resolve_glob_files, update_po_files
+from ..pofile import resolve_glob_files, update_po_files
 
 _POT_DEST = "pot"
 _PO_DEST = "po"
 
 
 @dataclass(frozen=True)
-class RcUpdateOpts:
+class UpdateOpts:
     in_pot: Path
     """The path to the input POT template file."""
     in_po: list[Path]
@@ -40,9 +40,9 @@ def register(parser: ArgumentParser) -> None:
     )
 
 
-def parse(args: dict[str, Any]) -> RcUpdateOpts:
-    return RcUpdateOpts(args[_POT_DEST], args[_PO_DEST])
+def parse(args: dict[str, Any]) -> UpdateOpts:
+    return UpdateOpts(args[_POT_DEST], args[_PO_DEST])
 
 
-def run(opts: RcUpdateOpts) -> None:
+def run(opts: UpdateOpts) -> None:
     update_po_files(opts.in_pot, resolve_glob_files(opts.in_po))

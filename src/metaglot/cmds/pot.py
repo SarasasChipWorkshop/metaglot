@@ -2,15 +2,15 @@ from argparse import ArgumentParser
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from ...manifest import load_manifest
-from ...pofile import generate_pot
+from ..manifest import load_manifest
+from ..pofile import generate_pot
 
 _MANIFEST_DEST = "manifest"
 _OUTPUT_DEST = "output"
 
 
 @dataclass(frozen=True)
-class AppStreamPotOpts:
+class PotOpts:
     in_manifest: Path
     """The path to input manifest file including translation strings."""
     out_pot: Path
@@ -40,10 +40,10 @@ def register(parser: ArgumentParser) -> None:
     )
 
 
-def parse(args: dict[str, Any]) -> AppStreamPotOpts:
-    return AppStreamPotOpts(args[_MANIFEST_DEST], args[_OUTPUT_DEST])
+def parse(args: dict[str, Any]) -> PotOpts:
+    return PotOpts(args[_MANIFEST_DEST], args[_OUTPUT_DEST])
 
 
-def run(opts: AppStreamPotOpts) -> None:
+def run(opts: PotOpts) -> None:
     manifest = load_manifest(opts.in_manifest)
     generate_pot(manifest, opts.out_pot)

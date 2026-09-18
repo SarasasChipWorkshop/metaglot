@@ -1,6 +1,6 @@
 # Desktop Render Context
 
-This document describes the data that `metaglot desktop render` provides to a user-provided [Liquid](https://shopify.github.io/liquid/) template when rendering freedesktop desktop entry files.
+This document describes the data that `metaglot render desktop` provides to a user-provided [Liquid](https://shopify.github.io/liquid/) template when rendering freedesktop desktop entry files.
 
 MetaGlot reads templates as UTF-8 and writes the rendered file as UTF-8 (without BOM) using the system's native line endings. This encoding is a built-in constraint of the tool and is not configurable. Desktop entry files are UTF-8 by definition, so no encoding declaration is needed (see the `example` folder for a complete sample).
 

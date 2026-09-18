@@ -1,6 +1,6 @@
 # RC Render Context
 
-This document describes the data that `metaglot rc render` provides to a user-provided [Liquid](https://shopify.github.io/liquid/) template when rendering Windows RC files.
+This document describes the data that `metaglot render rc` provides to a user-provided [Liquid](https://shopify.github.io/liquid/) template when rendering Windows RC files.
 
 MetaGlot reads templates as UTF-8 and writes the rendered file as UTF-8 (without BOM) using the system's native line endings. This encoding is a built-in constraint of the tool and is not configurable. Because the generated file is UTF-8, templates should declare the encoding with `#pragma code_page(65001)` so that the RC compiler parses the file correctly (see the `example` folder for a complete sample).
 

@@ -1,6 +1,6 @@
 # AppStream Render Context
 
-This document describes the data that `metaglot appstream render` provides to a user-provided [Liquid](https://shopify.github.io/liquid/) template when rendering AppStream metainfo XML files.
+This document describes the data that `metaglot render appstream` provides to a user-provided [Liquid](https://shopify.github.io/liquid/) template when rendering AppStream metainfo XML files.
 
 MetaGlot reads templates as UTF-8 and writes the rendered file as UTF-8 (without BOM) using the system's native line endings. This encoding is a built-in constraint of the tool and is not configurable. AppStream XML files are UTF-8 by definition, so the XML declaration should say so (see the `example` folder for a complete sample).
 

@@ -2,17 +2,17 @@ import enum
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from typing import Any
-from . import appstream, desktop, rc
-from .rc import RcOpts
-from .desktop import DesktopOpts
-from .appstream import AppStreamOpts
+from . import pot, update, render
+from .pot import PotOpts
+from .update import UpdateOpts
+from .render import RenderOpts
 
 
 @dataclass(frozen=True)
 class Opts:
     """The root options."""
 
-    opts: RcOpts | DesktopOpts | AppStreamOpts
+    opts: PotOpts | UpdateOpts | RenderOpts
     """The option of one of subcommand."""
 
 
@@ -20,35 +20,36 @@ _SUBCMD_DEST = "command"
 
 
 class _Command(enum.StrEnum):
-    Rc = "rc"
-    Desktop = "desktop"
-    Appstream = "appstream"
+    Pot = "pot"
+    Update = "update"
+    Render = "render"
 
 
 def register(parser: ArgumentParser) -> None:
     cmds = parser.add_subparsers(dest=_SUBCMD_DEST, required=True)
     subcmd = cmds.add_parser(
-        _Command.Rc.value, help="Commands for Windows RC resource files."
+        _Command.Pot.value, help="Generate a POT template from given manifest."
     )
-    rc.register(subcmd)
+    pot.register(subcmd)
     subcmd = cmds.add_parser(
-        _Command.Desktop.value, help="Commands for freedesktop desktop entry files."
+        _Command.Update.value, help="Update PO files against a POT template."
     )
-    desktop.register(subcmd)
+    update.register(subcmd)
     subcmd = cmds.add_parser(
-        _Command.Appstream.value, help="Commands for AppStream metainfo XML files."
+        _Command.Render.value,
+        help="Render a user-provided template with manifest data and PO translations.",
     )
-    appstream.register(subcmd)
+    render.register(subcmd)
 
 
 def parse(args: dict[str, Any]) -> Opts:
     match _Command(args[_SUBCMD_DEST]):
-        case _Command.Rc:
-            opts = Opts(rc.parse(args))
-        case _Command.Desktop:
-            opts = Opts(desktop.parse(args))
-        case _Command.Appstream:
-            opts = Opts(appstream.parse(args))
+        case _Command.Pot:
+            opts = Opts(pot.parse(args))
+        case _Command.Update:
+            opts = Opts(update.parse(args))
+        case _Command.Render:
+            opts = Opts(render.parse(args))
         case _:
             raise ValueError(f"unhandled command: {args[_SUBCMD_DEST]}")
     return opts
@@ -56,11 +57,11 @@ def parse(args: dict[str, Any]) -> Opts:
 
 def run(opts: Opts) -> None:
     match opts.opts:
-        case RcOpts() as rc_opts:
-            rc.run(rc_opts)
-        case DesktopOpts() as desktop_opts:
-            desktop.run(desktop_opts)
-        case AppStreamOpts() as appstream_opts:
-            appstream.run(appstream_opts)
+        case PotOpts() as pot_opts:
+            pot.run(pot_opts)
+        case UpdateOpts() as update_opts:
+            update.run(update_opts)
+        case RenderOpts() as render_opts:
+            render.run(render_opts)
         case _:
             raise RuntimeError(f"unhandled options: {opts.opts!r}")
