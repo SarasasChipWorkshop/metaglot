@@ -21,18 +21,24 @@ Instead of asking translators to edit platform-specific formats, MetaGlot lets t
 
 ## Why MetaGlot?
 
-Every platform has its own localization mechanism for application metadata:
-
-| Platform | Metadata format | Localization mechanism |
-|---|---|---|
-| Windows | `.rc` | String tables, version resources |
-| Linux | `.desktop` | `Name`, `Comment`, etc. |
-| Linux | AppStream XML | `<name>`, `<summary>`, `<description>` |
-| macOS | `Info.plist` | `InfoPlist.strings`, plist keys |
+Every platform has its own localization mechanism for application metadata. Windows applications use RC resource files to hold string tables and version resources, Linux applications use `.desktop` files to describe names and comments, and macOS applications use `Info.plist` together with localized `InfoPlist.strings` files.
 
 These formats are necessary for packaging and distribution, but they are inconvenient as translation sources. MetaGlot introduces a common localization layer.
 
 MetaGlot does not replace Gettext. It makes Gettext the canonical translation workflow for platform metadata.
+
+## Supported Metadata Types
+
+MetaGlot supports extracting and compiling metadata from the following formats:
+
+| Platform | Metadata format | Localization mechanism |
+|---|---|---|
+| Windows | `.rc` | String tables, version resources |
+| Windows | MSIX manifest (`AppxManifest.xml`) | `<DisplayName>`, `<Description>`, etc. |
+| Windows | NSIS packaging script (`.nsi`) | Version information keys |
+| Linux | `.desktop` | `Name`, `Comment`, etc. |
+| Linux | AppStream XML | `<name>`, `<summary>`, `<description>` |
+| macOS | `Info.plist` | `InfoPlist.strings`, plist keys |
 
 ## License
 
