@@ -4,8 +4,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from ...filters import register_desktop_filters, register_general_filters
+from ...langid import DesktopLang, PoLang
 from ...langmap import desktop_lang_map
-from ...manifest import Manifest, load_manifest
+from ...manifest import load_manifest
 from ...pofile import (
     LanguagePack,
     build_default_pack,
@@ -85,31 +86,85 @@ def parse(args: dict[str, Any]) -> DesktopRenderOpts:
     )
 
 
-def _language_context(pack: LanguagePack, manifest: Manifest) -> dict:
-    locale = desktop_lang_map.convert(pack.lang)
-    return {
-        "name": pack.lang.value,
-        "locale": locale.value,
-        "strings": pack.translations,
-    }
+class _DesktopStringsView:
+    """Route template string key lookups to their resolved text."""
+
+    __pack: LanguagePack
+    """The language pack the lookups route to."""
+
+    def __init__(self, pack: LanguagePack):
+        self.__pack = pack
+
+    def __getitem__(self, key: str) -> str:
+        return self.__pack.translations[key].text
+
+
+class _DesktopLanguageView:
+    """The Liquid-facing view of one language for desktop entry rendering."""
+
+    __pack: LanguagePack
+    """The wrapped language pack."""
+    __strings: _DesktopStringsView
+    """The view of the pack's translations."""
+    __locale: DesktopLang
+    """The desktop entry locale of the pack's language."""
+
+    def __init__(self, pack: LanguagePack):
+        self.__pack = pack
+        self.__strings = _DesktopStringsView(pack)
+        self.__locale = desktop_lang_map.convert(pack.lang)
+
+    def __getitem__(self, key: str) -> object:
+        match key:
+            case "name":
+                return self.__pack.lang.value
+            case "strings":
+                return self.__strings
+            case "locale":
+                return self.__locale.value
+            case _:
+                raise KeyError(key)
+
+
+class _DesktopRenderContext:
+    """The Liquid-facing top-level context for desktop entry rendering."""
+
+    __languages: tuple[_DesktopLanguageView, ...]
+    """The views of every translation language."""
+    __default: _DesktopLanguageView
+    """The view of the manifest's source language."""
+
+    def __init__(self, packs: dict[PoLang, LanguagePack], default: LanguagePack):
+        self.__languages = tuple(
+            _DesktopLanguageView(pack) for pack in packs.values()
+        )
+        self.__default = _DesktopLanguageView(default)
+
+    def keys(self) -> tuple[str, ...]:
+        """Return the names of the top-level template variables."""
+        return ("languages", "default")
+
+    def __getitem__(self, key: str) -> object:
+        match key:
+            case "languages":
+                return self.__languages
+            case "default":
+                return self.__default
+            case _:
+                raise KeyError(key)
 
 
 def run(opts: DesktopRenderOpts) -> None:
     manifest = load_manifest(opts.in_manifest)
     packs = resolve_translations(manifest, resolve_glob_files(opts.in_po))
-    default = _language_context(
-        build_default_pack(manifest, manifest.source_language), manifest
-    )
-    entries = [_language_context(pack, manifest) for pack in packs.values()]
+    default = build_default_pack(manifest, manifest.source_language)
+    context = _DesktopRenderContext(packs, default)
     logging.info(
         "rendering languages: %s (default %s)",
-        ", ".join(entry["name"] for entry in entries),
-        default["name"],
+        ", ".join(str(pack.lang) for pack in packs.values()),
+        default.lang,
     )
     env = create_environment()
     register_general_filters(env)
     register_desktop_filters(env)
-    render(
-        env, opts.in_template, {"languages": entries, "default": default},
-        opts.out_desktop,
-    )
+    render(env, opts.in_template, context, opts.out_desktop)

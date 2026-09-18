@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Iterable, Iterator, Optional
 import polib
 from .langid import PoLang
-from .manifest import Manifest
+from .manifest import Manifest, StringEntry
 
 _POT_HEADER = {
     "Project-Id-Version": "PACKAGE VERSION",
@@ -23,14 +23,27 @@ _POT_HEADER = {
 
 
 @dataclass(frozen=True)
+class Translation:
+    """The resolution of one manifest entry in one language."""
+
+    entry: StringEntry
+    """The manifest entry this translation resolves."""
+
+    text: str
+    """The usable text of the entry. It falls back to the manifest source
+    string when the entry is untranslated, missing or marked fuzzy."""
+
+
+@dataclass(frozen=True)
 class LanguagePack:
     """Resolved translations of one language against a manifest."""
 
     lang: PoLang
     """The language of this pack."""
 
-    translations: dict[str, str]
-    """The resolved text of every manifest entry, keyed by manifest entry key."""
+    translations: dict[str, Translation]
+    """The resolved translation of every manifest entry, keyed by manifest
+    entry key."""
 
 
 def resolve_glob_files(patterns: Iterable[Path]) -> Iterator[Path]:
@@ -108,7 +121,7 @@ def resolve_translations(
     """Resolve the translations of the given PO files against a manifest.
 
     Each PO file is loaded lazily and resolved to a :class:`LanguagePack`
-    holding the text of every manifest entry. Entries that are missing,
+    holding the resolution of every manifest entry. Entries that are missing,
     untranslated or marked fuzzy fall back to their source string.
 
     :param manifest: The manifest describing all translatable entries.
@@ -158,7 +171,10 @@ def resolve_translations(
         # Resolve every manifest entry against the index. Entries that are
         # missing, untranslated or fuzzy fall back to their source string.
         translations = {
-            key: _translated_text(index.get((entry.msgid, entry.context)), entry.msgid)
+            key: Translation(
+                entry,
+                _translated_text(index.get((entry.msgid, entry.context)), entry.msgid),
+            )
             for key, entry in manifest.strings.items()
         }
         packs[lang] = LanguagePack(lang, translations)
@@ -177,7 +193,9 @@ def build_default_pack(manifest: Manifest, lang: PoLang) -> LanguagePack:
     :param lang: The language stamped on the returned pack.
     :return: The default language pack.
     """
-    translations = {key: entry.msgid for key, entry in manifest.strings.items()}
+    translations = {
+        key: Translation(entry, entry.msgid) for key, entry in manifest.strings.items()
+    }
     return LanguagePack(lang, translations)
 
 

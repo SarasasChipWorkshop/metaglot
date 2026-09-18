@@ -1,8 +1,28 @@
 import logging
+from collections.abc import Iterable
 from pathlib import Path
+from typing import Protocol
 
 from liquid import Environment, StrictUndefined
 from liquid.exceptions import LiquidError
+
+
+class RenderContext(Protocol):
+    """The interface required of a top-level rendering context.
+
+    A render context routes template variable lookups dynamically (Liquid
+    performs item access only), and enumerates its variable names the same
+    way the ``dict`` constructor does, so an instance can be passed to
+    ``BoundTemplate.render`` directly.
+    """
+
+    def keys(self) -> Iterable[str]:
+        """Return the names of the top-level template variables."""
+        ...
+
+    def __getitem__(self, key: str) -> object:
+        """Return the value of the named top-level template variable."""
+        ...
 
 
 def create_environment() -> Environment:
@@ -18,7 +38,10 @@ def create_environment() -> Environment:
 
 
 def render(
-    env: Environment, template_path: Path, context: dict, output_path: Path
+    env: Environment,
+    template_path: Path,
+    context: RenderContext,
+    output_path: Path,
 ) -> None:
     """Render a Liquid template and write the result to a file.
 
@@ -27,7 +50,7 @@ def render(
 
     :param env: The environment to render with.
     :param template_path: The path of the template file.
-    :param context: The top-level variables passed to the template.
+    :param context: The top-level render context passed to the template.
     :param output_path: The path of the rendered file to write.
     :raises ValueError: If the template file does not exist.
     :raises RuntimeError: If the template cannot be read or rendered.
@@ -43,7 +66,7 @@ def render(
         template = env.from_string(
             template_source, name=str(template_path), path=template_path
         )
-        content = template.render(**context)
+        content = template.render(context)
     except LiquidError as exc:
         raise RuntimeError(
             f"failed to render template '{template_path}': {exc}"

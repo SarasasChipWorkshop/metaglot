@@ -6,7 +6,7 @@ from typing import Any
 from ...filters import register_general_filters, register_rc_filters
 from ...langid import PoLang, WinLcid
 from ...langmap import win_lcid_map
-from ...manifest import Manifest, load_manifest
+from ...manifest import load_manifest
 from ...pofile import (
     LanguagePack,
     build_default_pack,
@@ -100,17 +100,73 @@ def _lookup_langid(lang: PoLang) -> WinLcid:
         raise ValueError(f"language '{lang}' has no Windows language mapping") from None
 
 
-def _language_context(pack: LanguagePack, manifest: Manifest) -> dict:
-    lcid = _lookup_langid(pack.lang)
-    return {
-        "name": pack.lang.value,
-        "langid": f"0x{lcid.value:04X}",
-        "primary": f"0x{lcid.primary:02X}",
-        "sublanguage": f"0x{lcid.sublanguage:02X}",
-        "block_key": f"{lcid.value:04X}{_CODE_PAGE:04X}",
-        "code_page": f"{_CODE_PAGE}",
-        "strings": pack.translations,
-    }
+class _RcStringsView:
+    """Route template string key lookups to their resolved text."""
+
+    __pack: LanguagePack
+    """The language pack the lookups route to."""
+
+    def __init__(self, pack: LanguagePack):
+        self.__pack = pack
+
+    def __getitem__(self, key: str) -> str:
+        return self.__pack.translations[key].text
+
+
+class _RcLanguageView:
+    """The Liquid-facing view of one language for RC rendering."""
+
+    __pack: LanguagePack
+    """The wrapped language pack."""
+    __strings: _RcStringsView
+    """The view of the pack's translations."""
+    __lcid: WinLcid
+    """The Windows language identifier of the pack's language."""
+
+    def __init__(self, pack: LanguagePack):
+        self.__pack = pack
+        self.__strings = _RcStringsView(pack)
+        self.__lcid = _lookup_langid(pack.lang)
+
+    def __getitem__(self, key: str) -> object:
+        match key:
+            case "name":
+                return self.__pack.lang.value
+            case "strings":
+                return self.__strings
+            case "langid":
+                return f"0x{self.__lcid.value:04X}"
+            case "primary":
+                return f"0x{self.__lcid.primary:02X}"
+            case "sublanguage":
+                return f"0x{self.__lcid.sublanguage:02X}"
+            case "block_key":
+                return f"{self.__lcid.value:04X}{_CODE_PAGE:04X}"
+            case "code_page":
+                return f"{_CODE_PAGE}"
+            case _:
+                raise KeyError(key)
+
+
+class _RcRenderContext:
+    """The Liquid-facing top-level context for RC rendering."""
+
+    __languages: tuple[_RcLanguageView, ...]
+    """The views of every rendered language."""
+
+    def __init__(self, packs: dict[PoLang, LanguagePack]):
+        self.__languages = tuple(_RcLanguageView(pack) for pack in packs.values())
+
+    def keys(self) -> tuple[str, ...]:
+        """Return the names of the top-level template variables."""
+        return ("languages",)
+
+    def __getitem__(self, key: str) -> object:
+        match key:
+            case "languages":
+                return self.__languages
+            case _:
+                raise KeyError(key)
 
 
 def run(opts: RcRenderOpts) -> None:
@@ -122,12 +178,12 @@ def run(opts: RcRenderOpts) -> None:
         packs[manifest.source_language] = build_default_pack(
             manifest, manifest.source_language
         )
-    languages = [_language_context(pack, manifest) for pack in packs.values()]
+    context = _RcRenderContext(packs)
     logging.info(
         "rendering languages: %s",
-        ", ".join(language["name"] for language in languages),
+        ", ".join(str(pack.lang) for pack in packs.values()),
     )
     env = create_environment()
     register_general_filters(env)
     register_rc_filters(env)
-    render(env, opts.in_template, {"languages": languages}, opts.out_rc)
+    render(env, opts.in_template, context, opts.out_rc)
