@@ -4,7 +4,8 @@
 // String tables
 // ---------------------------
 
-{% for lang in languages %}// {{ lang.name }}
+{% for lang in languages %}
+// {{ lang.name }}
 LANGUAGE {{ lang.primary }}, {{ lang.sublanguage }}
 STRINGTABLE
 BEGIN
