@@ -1,12 +1,6 @@
 from ..langid import DesktopLang, PoLang
 
 
-# YYC MARK:
-# The standard of this convertion procedure can be seen at:
-# https://specifications.freedesktop.org/desktop-entry/1.5/localized-keys.html
-# The adopted version of specification is **1.5** .
-
-
 def convert(lang: PoLang) -> DesktopLang:
     """
     Convert a PO file language to a desktop entry locale.

@@ -3,11 +3,6 @@ from typing import ClassVar, Optional
 import langcodes
 import pycountry
 
-# YYC MARK:
-# This class is declared for GNU Gettext PO file.
-# The standard of this can be seen at:
-# https://www.gnu.org/software/gettext/manual/html_node/Header-Entry.html
-
 
 class PoLang:
     """
@@ -131,13 +126,6 @@ class PoLang:
         return hash((self.__language_code, self.__country_code, self.__variant))
 
     # endregion
-
-
-# YYC MARK:
-# This class is declared for FreeDesktop ``.desktop`` file.
-# The standard of this can be seen at:
-# https://specifications.freedesktop.org/desktop-entry/1.5/localized-keys.html
-# The adopted version of specification is **1.5** .
 
 
 class DesktopLang:
@@ -267,12 +255,6 @@ class DesktopLang:
     # endregion
 
 
-# YYC MARK:
-# AppStream XML file use standard ``xml:lang`` attribute to mark languages and locales.
-# So according to XML standard, the value of it must follow BCP 47.
-# This class is created for it so it should validate it.
-
-
 class AppStreamLang:
     """
     Represents a BCP 47 language tag, as required by the ``xml:lang``
@@ -366,12 +348,6 @@ class AppStreamLang:
         return hash(self.value)
 
     # endregion
-
-
-# YYC MARK:
-# The class is defined for Microsoft LCID.
-# See: https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-lcid/70feba9f-294e-491e-b6eb-56532684c37f
-# The adopted version of specification [MS-LCID] is **revision 2024-04-23** .
 
 
 class WinLcid:

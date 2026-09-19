@@ -2,10 +2,6 @@ from ..langid import PoLang, WinLcid
 
 
 # YYC MARK:
-# The standard of this convertion procedure can be seen at:
-# https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-lcid/70feba9f-294e-491e-b6eb-56532684c37f
-# The adopted version of specification [MS-LCID] is **revision 2024-04-23** .
-#
 # The table below is transcribed from the 'Language ID' table in
 # [MS-LCID] section 2.2 (revision 2024-04-23). Underscore separators in the
 # original language tags have been normalized to hyphens
