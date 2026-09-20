@@ -255,10 +255,9 @@ class DesktopLang:
     # endregion
 
 
-class AppStreamLang:
+class Bcp47Lang:
     """
-    Represents a BCP 47 language tag, as required by the ``xml:lang``
-    attribute values of AppStream XML files.
+    Represents a BCP 47 language tag.
 
     Validation and serialization are delegated to the core of the
     ``langcodes`` library (without its optional ``data`` extra). The whole
@@ -271,18 +270,18 @@ class AppStreamLang:
     to ``zh-CN``.
 
     Deliberate usage policy: MetaGlot only parses, validates and
-    serializes tags through this class. It never calls
+    serializes tags through this class hierarchy. It never calls
     ``langcodes.standardize_tag`` nor enables macro language collapsing,
-    so an emitted ``xml:lang`` is always a faithful hyphenation of its
-    Gettext source tag - no script injection, no redundant-script
-    removal, no macrolanguage folding.
+    so an emitted tag is always a faithful hyphenation of its Gettext
+    source tag - no script injection, no redundant-script removal, no
+    macrolanguage folding.
 
     Examples:
-        AppStreamLang("zh-CN")        # valid
-        AppStreamLang("sr-Latn-RS")   # valid
-        AppStreamLang("zh_CN")        # valid, normalizes to "zh-CN"
-        AppStreamLang("de-DE-euro")   # invalid (unregistered variant)
-        AppStreamLang("jp")           # invalid (not a language code)
+        Bcp47Lang("zh-CN")        # valid
+        Bcp47Lang("sr-Latn-RS")   # valid
+        Bcp47Lang("zh_CN")        # valid, normalizes to "zh-CN"
+        Bcp47Lang("de-DE-euro")   # invalid (unregistered variant)
+        Bcp47Lang("jp")           # invalid (not a language code)
     """
 
     __lang: langcodes.Language
@@ -335,12 +334,12 @@ class AppStreamLang:
         return self.value
 
     def __repr__(self) -> str:
-        return f"AppStreamLang({self.value!r})"
+        return f"{type(self).__name__}({self.value!r})"
 
     def __eq__(self, other) -> bool:
         if self is other:
             return True
-        if not isinstance(other, AppStreamLang):
+        if type(self) is not type(other):
             return NotImplemented
         return self.value == other.value
 
@@ -348,6 +347,26 @@ class AppStreamLang:
         return hash(self.value)
 
     # endregion
+
+
+class AppStreamLang(Bcp47Lang):
+    """
+    Represents a BCP 47 language tag, as required by the ``xml:lang``
+    attribute values of AppStream XML files.
+
+    See :class:`Bcp47Lang` for the accepted grammar, the validation
+    rules and the serialization policy.
+    """
+
+
+class MsixLang(Bcp47Lang):
+    """
+    Represents a BCP 47 language tag, as required by the language folder
+    names and ``Resource Language`` values of Windows MSIX packages.
+
+    See :class:`Bcp47Lang` for the accepted grammar, the validation
+    rules and the serialization policy.
+    """
 
 
 class WinLcid:

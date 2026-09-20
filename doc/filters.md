@@ -59,3 +59,18 @@ Examples:
 ```liquid
 {{ "Example" | desktop_escape }}  {% comment %}renders "Example"{% endcomment %}
 ```
+
+## MSIX Filters
+
+The following filters are available when rendering MSIX files. `xml_escape` is available to the manifest file rendering; both filters are available to the resources file rendering, where the template decides between a `.resw` (XML) and a `.resjson` (JSON) output.
+
+| Filter | Available to | Description |
+|---|---|---|
+| `xml_escape` | manifest, resources | The same filter described in the AppStream section above; `AppxManifest.xml` and `.resw` files are XML too. |
+| `json_escape` | resources | Escapes a string for use inside a JSON string literal, such as a `.resjson` value: `\` becomes `\\`, `"` becomes `\"`, newline, carriage return and tab become `\n`, `\r` and `\t`, and any other control character below 0x20 becomes its `\uXXXX` form. Like the other escape filters it adds no surrounding quotes; write them in the template: `"{{ strings.key \| json_escape }}"`. |
+
+Examples:
+
+```liquid
+{{ "Example" | json_escape }}  {% comment %}renders "Example", without quotes{% endcomment %}
+```

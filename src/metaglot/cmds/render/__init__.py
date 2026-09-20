@@ -2,17 +2,18 @@ import enum
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from typing import Any
-from . import rc, desktop, appstream
+from . import rc, desktop, appstream, msix
 from .rc import RcRenderOpts
 from .desktop import DesktopRenderOpts
 from .appstream import AppStreamRenderOpts
+from .msix import MsixRenderOpts
 
 _SUBCMD_DEST = "metadata"
 
 
 @dataclass(frozen=True)
 class RenderOpts:
-    opts: RcRenderOpts | DesktopRenderOpts | AppStreamRenderOpts
+    opts: RcRenderOpts | DesktopRenderOpts | AppStreamRenderOpts | MsixRenderOpts
     """The option of one of subcommand."""
 
 
@@ -20,6 +21,7 @@ class _Metadata(enum.StrEnum):
     Rc = "rc"
     Desktop = "desktop"
     Appstream = "appstream"
+    Msix = "msix"
 
 
 def register(parser: ArgumentParser) -> None:
@@ -36,6 +38,10 @@ def register(parser: ArgumentParser) -> None:
         _Metadata.Appstream.value, help="Render AppStream metainfo XML files."
     )
     appstream.register(subcmd)
+    subcmd = cmds.add_parser(
+        _Metadata.Msix.value, help="Render Windows MSIX files."
+    )
+    msix.register(subcmd)
 
 
 def parse(args: dict[str, Any]) -> RenderOpts:
@@ -46,6 +52,8 @@ def parse(args: dict[str, Any]) -> RenderOpts:
             opts = RenderOpts(desktop.parse(args))
         case _Metadata.Appstream:
             opts = RenderOpts(appstream.parse(args))
+        case _Metadata.Msix:
+            opts = RenderOpts(msix.parse(args))
         case _:
             raise ValueError(f"unhandled render command: {args[_SUBCMD_DEST]}")
     return opts
@@ -59,5 +67,7 @@ def run(opts: RenderOpts) -> None:
             desktop.run(desktop_opts)
         case AppStreamRenderOpts() as appstream_opts:
             appstream.run(appstream_opts)
+        case MsixRenderOpts() as msix_opts:
+            msix.run(msix_opts)
         case _:
             raise RuntimeError(f"unhandled render options: {opts.opts!r}")

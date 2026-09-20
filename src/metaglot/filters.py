@@ -92,3 +92,41 @@ def register_appstream_filters(env: Environment) -> None:
     :param env: The environment to register the filters on.
     """
     env.add_filter("xml_escape", _xml_escape)
+
+
+def _json_escape(value: str) -> str:
+    """Escape a string for use inside a JSON string literal.
+
+    Like the other ``_escape`` filters, this escapes only and adds no
+    surrounding quotes: ``"`` becomes ``\\"``, ``\\`` becomes ``\\\\``,
+    newline, carriage return and tab become ``\\n``, ``\\r`` and ``\\t``,
+    any other control character below 0x20 becomes its ``\\uXXXX`` form,
+    and non-ASCII characters carry over unchanged.
+    """
+    escaped = (
+        value.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
+    return "".join(
+        char if ord(char) >= 0x20 else f"\\u{ord(char):04X}" for char in escaped
+    )
+
+
+def register_msix_manifest_filters(env: Environment) -> None:
+    """Register the Liquid filters for the MSIX manifest file rendering.
+
+    :param env: The environment to register the filters on.
+    """
+    env.add_filter("xml_escape", _xml_escape)
+
+
+def register_msix_resources_filters(env: Environment) -> None:
+    """Register the Liquid filters for the MSIX resources file rendering.
+
+    :param env: The environment to register the filters on.
+    """
+    env.add_filter("xml_escape", _xml_escape)
+    env.add_filter("json_escape", _json_escape)

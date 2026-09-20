@@ -74,3 +74,32 @@ def render(
 
     output_path.write_text(content, encoding="utf-8")
     logging.info("Wrote rendered output to %s", output_path)
+
+
+def render_path(
+    env: Environment, template_source: str, context: RenderContext
+) -> Path:
+    """Render an in-memory Liquid template and return the result as a path.
+
+    Like :func:`render`, the environment is provided by the caller. The
+    template is an in-memory string (typically a command line argument)
+    instead of a file. The rendered output is stripped of surrounding
+    whitespace and must not be empty.
+
+    :param env: The environment to render with.
+    :param template_source: The source of the template to render.
+    :param context: The top-level render context passed to the template.
+    :return: The rendered path.
+    :raises ValueError: If the rendered result is empty.
+    :raises RuntimeError: If the template cannot be rendered.
+    """
+    try:
+        template = env.from_string(template_source)
+        content = template.render(context)
+    except LiquidError as exc:
+        raise RuntimeError(f"failed to render path template: {exc}") from exc
+
+    content = content.strip()
+    if not content:
+        raise ValueError("rendered path template result is empty")
+    return Path(content)

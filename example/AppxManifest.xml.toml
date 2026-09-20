@@ -1,0 +1,22 @@
+version = 1
+source_language = "en_US"
+
+[strings.app_display_name]
+msgid = "Example"
+comment = "Display name of the application, referenced as ms-resource:AppDisplayName."
+
+[strings.publisher_display_name]
+msgid = "Example contributors"
+comment = "Publisher display name, referenced as ms-resource:PublisherDisplayName."
+
+[strings.app_description]
+msgid = "A lightweight image viewer."
+comment = "Application description, referenced as ms-resource:AppDescription."
+
+[strings.file_type_jpeg]
+msgid = "JPEG Image"
+comment = "Display name of the JPEG file type association, referenced as ms-resource:FileTypeJpegDisplayName."
+
+[strings.file_type_png]
+msgid = "PNG Image"
+comment = "Display name of the PNG file type association, referenced as ms-resource:FileTypePngDisplayName."
