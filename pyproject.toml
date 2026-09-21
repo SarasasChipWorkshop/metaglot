@@ -8,6 +8,35 @@ authors = [
 ]
 requires-python = ">=3.13"
 license = { text = "MIT" }
+keywords = [
+    "localization",
+    "l10n",
+    "i18n",
+    "translation",
+    "gettext",
+    "pot",
+    "po",
+    "metadata",
+    "rc",
+    "msix",
+    "appstream",
+    "desktop-entry",
+    "plist",
+    "innosetup",
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Internationalization",
+    "Topic :: Software Development :: Localization",
+    "Topic :: Software Development :: Build Tools",
+]
 dependencies = [
     "langcodes>=3.5.1",
     "polib>=1.2.0",
