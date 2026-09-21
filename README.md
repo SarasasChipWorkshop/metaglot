@@ -29,12 +29,35 @@ MetaGlot supports compiling metadata from the following formats:
 
 | Platform | Metadata format |
 |---|---|
-| Windows | Windows reosurce file `.rc` |
+| Windows | Windows resource file `.rc` |
 | Windows | MSIX manifest (`Package.appxmanifest` or `AppxManifest.xml`) and localization files (`.resw` or `.resjson`) |
 | Windows | InnoSetup script (`.iss`) and its localization files (`.isl`) |
 | Linux | `.desktop` file |
 | Linux | AppStream XML file (`.metainfo.xml`) |
 | macOS | `Info.plist` and its localization files (`InfoPlist.strings`) |
+
+## Getting Started
+
+A typical MetaGlot workflow consists of four steps:
+
+1. Write the TOML string manifest of your metadata — extracted by a tool or written by hand.
+2. Generate a POT template from the manifest with `metaglot pot`.
+3. Bring the translation PO files up to date with the POT using `metaglot update`.
+4. Produce the platform-native files with `metaglot render` for every metadata type you ship.
+
+When you need more information along the way, refer to the following resources:
+
+- Run a command with the `--help` option to inspect its command line arguments.
+- Read the documents in the `doc` directory for the TOML manifest format, the render contexts and the available Liquid filters.
+- Browse the examples in the `example` directory for ready-to-study samples.
+
+## Environment Variables
+
+MetaGlot uses following environment variables at runtime:
+
+| Variable | Description |
+|---|---|
+| `METAGLOT_MSGMERGE` | Path to the `msgmerge` executable used by `metaglot update`, overriding the default lookup on `PATH`. |
 
 ## License
 
