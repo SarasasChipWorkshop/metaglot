@@ -130,3 +130,36 @@ def register_msix_resources_filters(env: Environment) -> None:
     """
     env.add_filter("xml_escape", _xml_escape)
     env.add_filter("json_escape", _json_escape)
+
+
+def _plist_strings_escape(value: str) -> str:
+    """Escape a string for use inside an InfoPlist.strings value.
+
+    The escape sequences of the strings file format are produced: ``\\``
+    becomes ``\\\\``, ``"`` becomes ``\\"``, linefeed, carriage return and
+    tab become ``\\n``, ``\\r`` and ``\\t``. Non-ASCII characters carry
+    over unchanged, as strings files are UTF-8 by definition.
+    """
+    return (
+        value.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+    )
+
+
+def register_plist_info_filters(env: Environment) -> None:
+    """Register the Liquid filters for the Info.plist file rendering.
+
+    :param env: The environment to register the filters on.
+    """
+    env.add_filter("xml_escape", _xml_escape)
+
+
+def register_plist_strings_filters(env: Environment) -> None:
+    """Register the Liquid filters for the InfoPlist.strings file rendering.
+
+    :param env: The environment to register the filters on.
+    """
+    env.add_filter("plist_strings_escape", _plist_strings_escape)

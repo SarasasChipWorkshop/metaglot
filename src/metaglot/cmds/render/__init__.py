@@ -2,18 +2,25 @@ import enum
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from typing import Any
-from . import rc, desktop, appstream, msix
+from . import rc, desktop, appstream, msix, plist
 from .rc import RcRenderOpts
 from .desktop import DesktopRenderOpts
 from .appstream import AppStreamRenderOpts
 from .msix import MsixRenderOpts
+from .plist import PlistRenderOpts
 
 _SUBCMD_DEST = "metadata"
 
 
 @dataclass(frozen=True)
 class RenderOpts:
-    opts: RcRenderOpts | DesktopRenderOpts | AppStreamRenderOpts | MsixRenderOpts
+    opts: (
+        RcRenderOpts
+        | DesktopRenderOpts
+        | AppStreamRenderOpts
+        | MsixRenderOpts
+        | PlistRenderOpts
+    )
     """The option of one of subcommand."""
 
 
@@ -22,6 +29,7 @@ class _Metadata(enum.StrEnum):
     Desktop = "desktop"
     Appstream = "appstream"
     Msix = "msix"
+    Plist = "plist"
 
 
 def register(parser: ArgumentParser) -> None:
@@ -42,6 +50,10 @@ def register(parser: ArgumentParser) -> None:
         _Metadata.Msix.value, help="Render Windows MSIX files."
     )
     msix.register(subcmd)
+    subcmd = cmds.add_parser(
+        _Metadata.Plist.value, help="Render macOS bundle Info.plist files."
+    )
+    plist.register(subcmd)
 
 
 def parse(args: dict[str, Any]) -> RenderOpts:
@@ -54,6 +66,8 @@ def parse(args: dict[str, Any]) -> RenderOpts:
             opts = RenderOpts(appstream.parse(args))
         case _Metadata.Msix:
             opts = RenderOpts(msix.parse(args))
+        case _Metadata.Plist:
+            opts = RenderOpts(plist.parse(args))
         case _:
             raise ValueError(f"unhandled render command: {args[_SUBCMD_DEST]}")
     return opts
@@ -69,5 +83,7 @@ def run(opts: RenderOpts) -> None:
             appstream.run(appstream_opts)
         case MsixRenderOpts() as msix_opts:
             msix.run(msix_opts)
+        case PlistRenderOpts() as plist_opts:
+            plist.run(plist_opts)
         case _:
             raise RuntimeError(f"unhandled render options: {opts.opts!r}")

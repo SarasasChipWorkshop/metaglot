@@ -74,3 +74,12 @@ Examples:
 ```liquid
 {{ "Example" | json_escape }}  {% comment %}renders "Example", without quotes{% endcomment %}
 ```
+
+## Plist Filters
+
+The following filters are available when rendering macOS bundle files. `xml_escape` is available to the Info.plist file rendering; `plist_strings_escape` is available to the InfoPlist.strings file rendering.
+
+| Filter | Available to | Description |
+|---|---|---|
+| `xml_escape` | Info.plist | The same filter described in the AppStream section above; Info.plist is XML too. |
+| `plist_strings_escape` | InfoPlist.strings | Escapes a string for use inside an InfoPlist.strings value: `\` becomes `\\`, `"` becomes `\"`, newline, carriage return and tab become `\n`, `\r` and `\t`. Non-ASCII characters carry over unchanged; use the `\Uxxxx` form manually for the rare cases a literal escape is required. |

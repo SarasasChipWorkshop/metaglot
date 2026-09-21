@@ -369,6 +369,17 @@ class MsixLang(Bcp47Lang):
     """
 
 
+class PlistLang(Bcp47Lang):
+    """
+    Represents a BCP 47 language tag, as required by the language folder
+    names of macOS bundle localizations (e.g. ``en.lproj``,
+    ``zh-Hans.lproj``).
+
+    See :class:`Bcp47Lang` for the accepted grammar, the validation
+    rules and the serialization policy.
+    """
+
+
 class WinLcid:
     """
     Represents a Windows language identifier (LANGID), the 2-byte language

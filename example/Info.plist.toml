@@ -1,0 +1,18 @@
+version = 1
+source_language = "en"
+
+[strings.app_display_name]
+msgid = "Example"
+comment = "Display name of the application, localized via the CFBundleDisplayName entry of InfoPlist.strings."
+
+[strings.copyright]
+msgid = "Copyright © 2026 Example contributors."
+comment = "Copyright notice, localized via the NSHumanReadableCopyright entry of InfoPlist.strings."
+
+[strings.file_type_jpeg]
+msgid = "JPEG Image"
+comment = "Name of the JPEG file type. Localized via an InfoPlist.strings entry keyed by the source text, covering both CFBundleTypeName and UTTypeDescription."
+
+[strings.file_type_png]
+msgid = "PNG Image"
+comment = "Name of the PNG file type. Localized the same way as the JPEG one."

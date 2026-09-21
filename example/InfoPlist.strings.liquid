@@ -1,0 +1,7 @@
+/* Application display name. The key is the Info.plist key name. */
+"CFBundleDisplayName" = "{{ strings.app_display_name | plist_strings_escape }}";
+/* Copyright notice. The key is the Info.plist key name. */
+"NSHumanReadableCopyright" = "{{ strings.copyright | plist_strings_escape }}";
+/* File type names. The key is the source text, covering both CFBundleTypeName and UTTypeDescription. */
+"{{ sources.file_type_jpeg | plist_strings_escape }}" = "{{ strings.file_type_jpeg | plist_strings_escape }}";
+"{{ sources.file_type_png | plist_strings_escape }}" = "{{ strings.file_type_png | plist_strings_escape }}";
