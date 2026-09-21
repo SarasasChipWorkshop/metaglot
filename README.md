@@ -11,11 +11,7 @@
 
 MetaGlot is a command-line tool that unifies localization metadata for applications shipped on multiple platforms. It extracts or defines translatable strings from platform-specific metadata files, normalizes them into Gettext-compatible POT/PO catalogs, and compiles translated PO files back into platform-native files.
 
-It currently is designed for projects that ship on:
-
-- **Windows** using RC resource files
-- **Linux** using `.desktop` and AppStream MetaInfo XML files
-- **macOS** using `Info.plist` and localized `InfoPlist.strings` files
+It currently is designed for projects that ship on Windows, Linux and macOS.
 
 Instead of asking translators to edit platform-specific formats, MetaGlot lets them work with standard Gettext PO files.
 
@@ -29,16 +25,16 @@ MetaGlot does not replace Gettext. It makes Gettext the canonical translation wo
 
 ## Supported Metadata Types
 
-MetaGlot supports extracting and compiling metadata from the following formats:
+MetaGlot supports compiling metadata from the following formats:
 
-| Platform | Metadata format | Localization mechanism |
-|---|---|---|
-| Windows | `.rc` | String tables, version resources |
-| Windows | MSIX manifest (`AppxManifest.xml`) | `<DisplayName>`, `<Description>`, etc. |
-| Windows | NSIS packaging script (`.nsi`) | Version information keys |
-| Linux | `.desktop` | `Name`, `Comment`, etc. |
-| Linux | AppStream XML | `<name>`, `<summary>`, `<description>` |
-| macOS | `Info.plist` | `InfoPlist.strings`, plist keys |
+| Platform | Metadata format |
+|---|---|
+| Windows | Windows reosurce file `.rc` |
+| Windows | MSIX manifest (`Package.appxmanifest` or `AppxManifest.xml`) and localization files (`.resw` or `.resjson`) |
+| Windows | InnoSetup script (`.iss`) and its localization files (`.isl`) |
+| Linux | `.desktop` file |
+| Linux | AppStream XML file (`.metainfo.xml`) |
+| macOS | `Info.plist` and its localization files (`InfoPlist.strings`) |
 
 ## License
 
