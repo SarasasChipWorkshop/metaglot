@@ -71,4 +71,4 @@ TODO...
 ### Bump Manifest Version Up
 
 - Update version value in document `doc/manifest.md`.
-- Update version value in example `doc/example.*.toml`.
+- Update version value in example `example/*.toml`.

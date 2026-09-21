@@ -10,7 +10,7 @@ Every component below renders with its **own environment**, so the filters avail
 
 ## Path Template Contexts
 
-The `--plist-path` and `--strings-path` arguments are in-memory Liquid templates rendered into output paths. Only the general filters described in [filters.md](filters.md) are available to them.
+The `--plist-path` and `--strings-path` arguments are in-memory Liquid templates rendered into output paths. Only the general filters described in [filters.md](../filters.md) are available to them.
 
 ### `--plist-path`
 

@@ -38,7 +38,7 @@ Keep the `case` branches aligned with the languages you ship PO files for: an un
 
 ## Path Template Contexts
 
-The `--iss-path` and `--isl-path` arguments are in-memory Liquid templates rendered into output paths. Only the general filters described in [filters.md](filters.md) are available to them.
+The `--iss-path` and `--isl-path` arguments are in-memory Liquid templates rendered into output paths. Only the general filters described in [filters.md](../filters.md) are available to them.
 
 ### `--iss-path`
 

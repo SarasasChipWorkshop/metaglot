@@ -41,4 +41,4 @@ Name={{ default.strings.name | desktop_escape }}
 
 ## Filters
 
-All filters described in [filters.md](filters.md) are available when rendering desktop entry files: the general filters available in every rendering, and the desktop filters such as `desktop_escape`.
+All filters described in [filters.md](../filters.md) are available when rendering desktop entry files: the general filters available in every rendering, and the desktop filters such as `desktop_escape`.

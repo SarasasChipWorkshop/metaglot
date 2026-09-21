@@ -37,4 +37,4 @@ The resolved text of an entry falls back to the manifest source string when the 
 
 ## Filters
 
-All filters described in [filters.md](filters.md) are available when rendering RC files: the general filters available in every rendering, and the RC filters such as `rc_escape`.
+All filters described in [filters.md](../filters.md) are available when rendering RC files: the general filters available in every rendering, and the RC filters such as `rc_escape`.

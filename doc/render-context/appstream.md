@@ -45,4 +45,4 @@ AppStream uses the element without `xml:lang` as the untranslated default, mirro
 
 ## Filters
 
-All filters described in [filters.md](filters.md) are available when rendering AppStream XML files: the general filters available in every rendering, and the AppStream filters such as `xml_escape`. Note that translated descriptions may legitimately carry AppStream markup (e.g. `<em>`); such values must not be passed through `xml_escape`, and deciding what to escape is the template author's responsibility.
+All filters described in [filters.md](../filters.md) are available when rendering AppStream XML files: the general filters available in every rendering, and the AppStream filters such as `xml_escape`. Note that translated descriptions may legitimately carry AppStream markup (e.g. `<em>`); such values must not be passed through `xml_escape`, and deciding what to escape is the template author's responsibility.
