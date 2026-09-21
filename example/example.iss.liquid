@@ -9,17 +9,17 @@ Compression=lzma
 SolidCompression=yes
 
 [Languages]
-{% for lang in langs %}
-{% case lang %}
-{% when 'zh_CN' %}
-{% assign base = 'compiler:Languages\ChineseSimplified.isl' %}
-{% when 'ja' %}
-{% assign base = 'compiler:Languages\Japanese.isl' %}
-{% else %}
-{% assign base = 'compiler:Default.isl' %}
-{% endcase %}
+{% for lang in langs -%}
+{% case lang -%}
+{% when 'zh_CN' -%}
+{% assign base = 'compiler:Languages\ChineseSimplified.isl' -%}
+{% when 'ja' -%}
+{% assign base = 'compiler:Languages\Japanese.isl' -%}
+{% else -%}
+{% assign base = 'compiler:Default.isl' -%}
+{% endcase -%}
 Name: "{{ lang }}"; MessagesFile: "{{ base }},Strings\{{ lang }}.isl"
-{% endfor %}
+{% endfor -%}
 [Tasks]
 Name: "desktopicon"; Description: "{cm:task_desktop_icon}"
 

@@ -4,15 +4,15 @@
 // String tables
 // ---------------------------
 
-{% for lang in languages %}
+{% for lang in languages -%}
 // {{ lang.name }}
 LANGUAGE {{ lang.primary }}, {{ lang.sublanguage }}
 STRINGTABLE
 BEGIN
-{% for i in (1000..1002) %}
+{%- for i in (1000..1002) -%}
 {% assign key = i | to_string %}
     {{ i }} "{{ lang.strings[key] | rc_escape }}"
-{% endfor %}
+{%- endfor %}
 END
 {% endfor %}
 
@@ -30,7 +30,7 @@ FILETYPE VFT_APP
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-{% for lang in languages %}
+{%- for lang in languages %}
         BLOCK "{{ lang.block_key }}"
         BEGIN
             VALUE "Comments", "https://github.com/SarasasChipWorkshop/metaglot"
@@ -43,10 +43,12 @@ BEGIN
             VALUE "ProductName", "{{ lang.strings.product_name | rc_escape }}"
             VALUE "ProductVersion", "1.0.0.0"
         END
-{% endfor %}
+{%- endfor %}
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", {% for lang in languages %}{{ lang.langid }}, {{ lang.code_page }}{% unless forloop.last %}, {% endunless %}{% endfor %}
+        VALUE "Translation", {% for lang in languages -%}
+{{ lang.langid }}, {{ lang.code_page }}{% unless forloop.last %}, {% endunless %}
+{%- endfor %}
     END
 END
