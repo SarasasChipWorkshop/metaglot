@@ -1,0 +1,14 @@
+version = 1
+source_language = "en"
+
+[strings.app_name]
+msgid = "Example"
+comment = "Name of the application, referenced as {cm:app_name} in the .iss script."
+
+[strings.app_versioned_name]
+msgid = "Example %1"
+comment = "Versioned name of the application, referenced as {cm:app_versioned_name,<version>}. The %1 placeholder receives the version."
+
+[strings.task_desktop_icon]
+msgid = "Create a desktop shortcut"
+comment = "Description of the desktop icon task, referenced as {cm:task_desktop_icon}."

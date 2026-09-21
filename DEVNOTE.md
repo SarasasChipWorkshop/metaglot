@@ -51,6 +51,17 @@ Based on these document, we know`.plist` file is ordinary XML file, so we create
 
 [Apple document](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundledevelopmentregion) doesn't explicitly declare the standard of `<lang>` part in expected `.strings` file path `Contents/Resources/<lang>.lproj/InfoPlist.strings`. We only can tract its history based on [Apple old document](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html). First it is "human-readable names". such as `English`, `German`, and etc. Then it becomes `language_region`, like `en_GB`. And finally, it possible be a BCP 47 string now based on multiple modern Apple documents. So we are forced to follow this vague standard to design the representation of it and may change it in future if we meet with some issues or more clear standard specification.
 
+### InnoSetup Script Files
+
+InnoSetup installation involves multiple file formats. All formats of them can be browsed from their official documents:
+
+- `.iss` script file: https://jrsoftware.org/ishelp/index.php?topic=languages (the `[Languages]` section) and https://jrsoftware.org/ishelp/index.php?topic=custommessages (the `[CustomMessages]` section)
+- `.isl` messages file: https://jrsoftware.org/ishelp/index.php?topic=langoptions (the `[LangOptions]` section) and https://jrsoftware.org/ishelp/index.php?topic=messages (the `[Messages]` section)
+
+Based on these document, we create corresponding Liquid filters for both files, since they share the same message value format.
+
+Unlike the other targets, InnoSetup has no standard representation of language identifiers: both the internal language names declared in the `[Languages]` section and the message file names are chosen freely by the packager, as its official document says. So there is no language representation or convertion code for this target. The PO language tag carries over verbatim, and the pairing between a language and its base `.isl` file is expressed explicitly by the template author.
+
 ## Bump Version Up
 
 ### Bump Application Version Up

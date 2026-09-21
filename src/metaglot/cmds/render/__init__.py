@@ -2,12 +2,13 @@ import enum
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from typing import Any
-from . import rc, desktop, appstream, msix, plist
+from . import rc, desktop, appstream, msix, plist, inno
 from .rc import RcRenderOpts
 from .desktop import DesktopRenderOpts
 from .appstream import AppStreamRenderOpts
 from .msix import MsixRenderOpts
 from .plist import PlistRenderOpts
+from .inno import InnoRenderOpts
 
 _SUBCMD_DEST = "metadata"
 
@@ -20,6 +21,7 @@ class RenderOpts:
         | AppStreamRenderOpts
         | MsixRenderOpts
         | PlistRenderOpts
+        | InnoRenderOpts
     )
     """The option of one of subcommand."""
 
@@ -30,6 +32,7 @@ class _Metadata(enum.StrEnum):
     Appstream = "appstream"
     Msix = "msix"
     Plist = "plist"
+    Inno = "inno"
 
 
 def register(parser: ArgumentParser) -> None:
@@ -54,6 +57,10 @@ def register(parser: ArgumentParser) -> None:
         _Metadata.Plist.value, help="Render macOS bundle Info.plist files."
     )
     plist.register(subcmd)
+    subcmd = cmds.add_parser(
+        _Metadata.Inno.value, help="Render Inno Setup installation files."
+    )
+    inno.register(subcmd)
 
 
 def parse(args: dict[str, Any]) -> RenderOpts:
@@ -68,6 +75,8 @@ def parse(args: dict[str, Any]) -> RenderOpts:
             opts = RenderOpts(msix.parse(args))
         case _Metadata.Plist:
             opts = RenderOpts(plist.parse(args))
+        case _Metadata.Inno:
+            opts = RenderOpts(inno.parse(args))
         case _:
             raise ValueError(f"unhandled render command: {args[_SUBCMD_DEST]}")
     return opts
@@ -85,5 +94,7 @@ def run(opts: RenderOpts) -> None:
             msix.run(msix_opts)
         case PlistRenderOpts() as plist_opts:
             plist.run(plist_opts)
+        case InnoRenderOpts() as inno_opts:
+            inno.run(inno_opts)
         case _:
             raise RuntimeError(f"unhandled render options: {opts.opts!r}")

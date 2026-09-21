@@ -83,3 +83,11 @@ The following filters are available when rendering macOS bundle files. `xml_esca
 |---|---|---|
 | `xml_escape` | Info.plist | The same filter described in the AppStream section above; Info.plist is XML too. |
 | `plist_strings_escape` | InfoPlist.strings | Escapes a string for use inside an InfoPlist.strings value: `\` becomes `\\`, `"` becomes `\"`, newline, carriage return and tab become `\n`, `\r` and `\t`. Non-ASCII characters carry over unchanged; use the `\Uxxxx` form manually for the rare cases a literal escape is required. |
+
+## Inno Filters
+
+The following filter is available to both the `.iss` and the `.isl` file renderings of the Inno Setup pipeline, which share the same message value escaping.
+
+| Filter | Description |
+|---|---|
+| `inno_escape` | Escapes a string for use inside an Inno Setup message value: linefeed and carriage return become `%n`. The `%1`..`%9` argument placeholders and a literal `%` are left untouched - the `%%` escape is only defined for messages that take arguments, so managing `%` is the translator's responsibility. |

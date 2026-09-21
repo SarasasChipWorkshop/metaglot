@@ -163,3 +163,25 @@ def register_plist_strings_filters(env: Environment) -> None:
     :param env: The environment to register the filters on.
     """
     env.add_filter("plist_strings_escape", _plist_strings_escape)
+
+
+def _inno_escape(value: str) -> str:
+    """Escape a string for use inside an Inno Setup message value.
+
+    Linefeed and carriage return become ``%n``. The ``%1``..``%9``
+    argument placeholders and a literal ``%`` are left untouched: the
+    ``%%`` escape is only defined for messages that take arguments, so
+    managing ``%`` is the translator's responsibility.
+    """
+    return value.replace("\n", "%n").replace("\r", "%n")
+
+
+def register_inno_filters(env: Environment) -> None:
+    """Register the Liquid filters for Inno Setup file rendering.
+
+    Both the .iss and the .isl file renderings share the same message
+    value escaping, so one registration function serves both.
+
+    :param env: The environment to register the filters on.
+    """
+    env.add_filter("inno_escape", _inno_escape)

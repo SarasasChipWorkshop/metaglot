@@ -1,0 +1,30 @@
+[Setup]
+AppId=ExampleApp
+AppName={cm:app_name}
+AppVersion=1.0.0
+AppVerName={cm:app_versioned_name,1.0.0}
+DefaultDirName={autopf}\{cm:app_name}
+OutputBaseFilename=example-setup
+Compression=lzma
+SolidCompression=yes
+
+[Languages]
+{% for lang in langs %}
+{% case lang %}
+{% when 'zh_CN' %}
+{% assign base = 'compiler:Languages\ChineseSimplified.isl' %}
+{% when 'ja' %}
+{% assign base = 'compiler:Languages\Japanese.isl' %}
+{% else %}
+{% assign base = 'compiler:Default.isl' %}
+{% endcase %}
+Name: "{{ lang }}"; MessagesFile: "{{ base }},Strings\{{ lang }}.isl"
+{% endfor %}
+[Tasks]
+Name: "desktopicon"; Description: "{cm:task_desktop_icon}"
+
+[Files]
+Source: "example.exe"; DestDir: "{app}"; Flags: ignoreversion
+
+[Icons]
+Name: "{autodesktop}\{cm:app_name}"; Filename: "{app}\example.exe"; Tasks: desktopicon
