@@ -276,7 +276,6 @@ def run(opts: InnoRenderOpts) -> None:
     iss_out = opts.out_dir / render_path(
         iss_path_env, opts.in_iss_path, _InnoIssPathContext()
     )
-    iss_out.parent.mkdir(parents=True, exist_ok=True)
     render(
         iss_template_env,
         opts.in_iss_template,
@@ -288,7 +287,6 @@ def run(opts: InnoRenderOpts) -> None:
         isl_out = opts.out_dir / render_path(
             isl_path_env, opts.in_isl_path, _InnoIslPathContext(lang)
         )
-        isl_out.parent.mkdir(parents=True, exist_ok=True)
         render(
             isl_template_env,
             opts.in_isl_template,

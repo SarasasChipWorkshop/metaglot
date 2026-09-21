@@ -278,7 +278,6 @@ def run(opts: MsixRenderOpts) -> None:
     manifest_out = opts.out_dir / render_path(
         manifest_path_env, opts.in_manifest_path, _MsixManifestPathContext()
     )
-    manifest_out.parent.mkdir(parents=True, exist_ok=True)
     render(
         manifest_template_env,
         opts.in_manifest_template,
@@ -292,7 +291,6 @@ def run(opts: MsixRenderOpts) -> None:
             opts.in_resources_path,
             _MsixResourcesPathContext(lang),
         )
-        resources_out.parent.mkdir(parents=True, exist_ok=True)
         render(
             resources_template_env,
             opts.in_resources_template,

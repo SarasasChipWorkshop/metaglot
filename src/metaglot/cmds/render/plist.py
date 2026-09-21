@@ -302,7 +302,6 @@ def run(opts: PlistRenderOpts) -> None:
     plist_out = opts.out_dir / render_path(
         plist_path_env, opts.in_plist_path, _PlistInfoPathContext()
     )
-    plist_out.parent.mkdir(parents=True, exist_ok=True)
     render(
         plist_template_env,
         opts.in_plist_template,
@@ -316,7 +315,6 @@ def run(opts: PlistRenderOpts) -> None:
             opts.in_strings_path,
             _PlistStringsPathContext(lang),
         )
-        strings_out.parent.mkdir(parents=True, exist_ok=True)
         render(
             strings_template_env,
             opts.in_strings_template,

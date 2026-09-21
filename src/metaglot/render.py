@@ -46,7 +46,8 @@ def render(
     """Render a Liquid template and write the result to a file.
 
     The template is read as UTF-8. The rendered output is written as UTF-8
-    using the system's native line endings.
+    using the system's native line endings. The parent folder of the output
+    file is created when it does not exist.
 
     :param env: The environment to render with.
     :param template_path: The path of the template file.
@@ -72,6 +73,7 @@ def render(
             f"failed to render template '{template_path}': {exc}"
         ) from exc
 
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(content, encoding="utf-8")
     logging.info("Wrote rendered output to %s", output_path)
 
