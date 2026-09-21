@@ -39,6 +39,18 @@ We use these formats to create Liquid filters.
 
 Additionally, we check [the document about localization file path](https://learn.microsoft.com/en-us/windows/uwp/app-resources/localize-strings-ui-manifest) to know the language tag used by Windows MSIX. Then we use it to create the representation of it, and convertion code which converts PO file language representation to this representation.
 
+### macOS Bundle Files
+
+macOS `.plist` and its localization mechanism involve multiple file formats. All formats of them can be browsed from their official documents:
+
+- `Info.plist` file: https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/PropertyLists/UnderstandXMLPlist/UnderstandXMLPlist.html
+- `InfoPlist.strings` and other string resource files: https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html
+- UTI string: https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html
+
+Based on these document, we know`.plist` file is ordinary XML file, so we create corresponding Liquid filter for it. Oppositely, for `.strings` file, according to [Apple document](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html), we also create corresponding filter.
+
+[Apple document](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundledevelopmentregion) doesn't explicitly declare the standard of `<lang>` part in expected `.strings` file path `Contents/Resources/<lang>.lproj/InfoPlist.strings`. We only can tract its history based on [Apple old document](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html). First it is "human-readable names". such as `English`, `German`, and etc. Then it becomes `language_region`, like `en_GB`. And finally, it possible be a BCP 47 string now based on multiple modern Apple documents. So we are forced to follow this vague standard to design the representation of it and may change it in future if we meet with some issues or more clear standard specification.
+
 ## Bump Version Up
 
 ### Bump Application Version Up
