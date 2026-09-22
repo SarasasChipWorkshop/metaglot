@@ -216,6 +216,7 @@ def generate_pot(manifest: Manifest, output_path: Path) -> None:
                 comment=entry.comment or None,
             )
         )
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     po.save(str(output_path))
     logging.info("Wrote %d entries to POT file %s.", len(po), output_path)
 
