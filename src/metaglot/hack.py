@@ -4,6 +4,7 @@ Each hack should be applied at the very start of ``main`` and
 documents why it exists and when it can be dropped.
 """
 
+import sys
 import liquid.builtin.expressions.primitive as _primitive
 
 # TODO:
@@ -21,5 +22,5 @@ def relax_liquid_range_literal_boundary() -> None:
     without any error. Relax the bounds the library itself defines
     to a more large boundary (as its commented)
     """
-    _primitive.MAX_RANGE = (2**53) - 1
-    _primitive.MIN_RANGE = -(2**53) + 1
+    _primitive.MAX_RANGE = sys.maxsize
+    _primitive.MIN_RANGE = -sys.maxsize
