@@ -1,10 +1,13 @@
 import logging
 import sys
 from argparse import ArgumentParser
+from . import hack
 from .cmds import run, register, parse
 
 
 def main() -> None:
+    hack.relax_liquid_range_literal_boundary()
+    
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
     parser = ArgumentParser(

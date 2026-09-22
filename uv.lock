@@ -108,7 +108,7 @@ requires-dist = [
     { name = "polib", specifier = ">=1.2.0" },
     { name = "pycountry", specifier = ">=26.2.16" },
     { name = "pydantic", specifier = ">=2.11.7" },
-    { name = "python-liquid", specifier = ">=2.2.0" },
+    { name = "python-liquid", specifier = "==2.3.1" },
 ]
 
 [[package]]
