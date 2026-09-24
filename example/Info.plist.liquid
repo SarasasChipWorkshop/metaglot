@@ -26,6 +26,13 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>{{ default.strings.copyright | xml_escape }}</string>
+{% comment %}
+CFBundleLocalizations declares the localizations the application handles by itself, 
+not those discovered through the bundle localization mechanism. 
+This example assumes the application's UI languages (e.g. Qt-embedded translations) match its metadata languages, 
+so it renders the metadata language list directly; 
+maintain your own list here if the two ever differ.
+{% endcomment %}
 	<key>CFBundleLocalizations</key>
 	<array>
 {% for lang in langs %}

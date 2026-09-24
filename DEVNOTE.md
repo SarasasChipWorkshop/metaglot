@@ -44,6 +44,7 @@ Additionally, we check [the document about localization file path](https://learn
 macOS `.plist` and its localization mechanism involve multiple file formats. All formats of them can be browsed from their official documents:
 
 - `Info.plist` file: https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/PropertyLists/UnderstandXMLPlist/UnderstandXMLPlist.html
+- Available keys and values in `Info.plist` file: https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Introduction/Introduction.html
 - `InfoPlist.strings` and other string resource files: https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/LoadingResources/Strings/Strings.html
 - UTI string: https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html
 

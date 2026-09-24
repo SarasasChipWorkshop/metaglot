@@ -61,6 +61,8 @@ The `--plist-template` and `--strings-template` arguments point to template file
 </array>
 ```
 
+Note that `CFBundleLocalizations` declares the localizations handled by the application itself rather than those discovered through the bundle localization mechanism — think of a Qt application localizing through its embedded translations. MetaGlot only knows the metadata languages (the languages receiving an `InfoPlist.strings` file), so rendering `langs` into this key assumes the application's self-handled UI languages and its metadata languages are the same set — the common case when the project translates both in lockstep. When the two differ, maintain the list in the template yourself instead of iterating `langs`. An application localizing entirely through the bundle mechanism usually does not need this key at all.
+
 The source language always leads `langs` and always gets an InfoPlist.strings file: it comes from a PO file when one provides it, and is otherwise synthesized from the manifest's source strings. Every language listed in `langs` is guaranteed a complete `.lproj` folder.
 
 ### `--strings-template`
