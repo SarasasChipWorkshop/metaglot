@@ -2,8 +2,9 @@ import logging
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 from ...filters import register_general_filters, register_inno_filters
+from ...langmap import inno_lang_map
 from ...manifest import load_manifest
 from ...pofile import (
     LanguagePack,
@@ -164,25 +165,63 @@ class _InnoIslPathContext:
     """The Liquid-facing context of one .isl path template rendering.
 
     It is rendered once per language, with the PO language tag of the
-    messages file being placed exposed as ``lang``. Inno Setup has no
-    standard representation of language identifiers, so no conversion
-    happens: the tag is the Gettext PO tag verbatim.
+    messages file being placed exposed as ``name`` and the best-effort
+    conventional Inno Setup language name exposed as ``lang``. The
+    conversion is not normative and may yield ``None``, so path templates
+    typically render ``{{ lang | default: name }}``.
     """
 
-    __lang: str
+    __name: str
     """The PO language tag of the .isl messages file being placed."""
+    __lang: Optional[str]
+    """The conventional Inno Setup language name, or None if unknown."""
 
-    def __init__(self, lang: str):
-        self.__lang = lang
+    def __init__(self, pack: LanguagePack):
+        inno = inno_lang_map.convert(pack.lang)
+        self.__name = pack.lang.value
+        self.__lang = inno.value if inno is not None else None
 
     def keys(self) -> tuple[str, ...]:
         """Return the names of the top-level template variables."""
-        return ("lang",)
+        return ("lang", "name")
 
     def __getitem__(self, key: str) -> object:
-        if key == "lang":
-            return self.__lang
-        raise KeyError(key)
+        match key:
+            case "lang":
+                return self.__lang
+            case "name":
+                return self.__name
+            case _:
+                raise KeyError(key)
+
+
+class _InnoLanguageView:
+    """The Liquid-facing view of one language inside the ``langs`` array of
+    the .iss template context.
+
+    It exposes the PO language tag as ``name`` and the best-effort
+    conventional Inno Setup language name as ``lang`` (``None`` when no
+    conventional name exists).
+    """
+
+    __name: str
+    """The PO language tag."""
+    __lang: Optional[str]
+    """The conventional Inno Setup language name, or None if unknown."""
+
+    def __init__(self, pack: LanguagePack):
+        inno = inno_lang_map.convert(pack.lang)
+        self.__name = pack.lang.value
+        self.__lang = inno.value if inno is not None else None
+
+    def __getitem__(self, key: str) -> object:
+        match key:
+            case "name":
+                return self.__name
+            case "lang":
+                return self.__lang
+            case _:
+                raise KeyError(key)
 
 
 class _InnoIslTemplateContext:
@@ -199,19 +238,25 @@ class _InnoIslTemplateContext:
     """The wrapped language pack."""
     __strings: _InnoStringsView
     """The view of the pack's translations."""
+    __lang: Optional[str]
+    """The conventional Inno Setup language name, or None if unknown."""
 
     def __init__(self, pack: LanguagePack):
         self.__pack = pack
         self.__strings = _InnoStringsView(pack)
+        inno = inno_lang_map.convert(pack.lang)
+        self.__lang = inno.value if inno is not None else None
 
     def keys(self) -> tuple[str, ...]:
         """Return the names of the exposed template variables."""
-        return ("name", "strings")
+        return ("name", "lang", "strings")
 
     def __getitem__(self, key: str) -> object:
         match key:
             case "name":
                 return self.__pack.lang.value
+            case "lang":
+                return self.__lang
             case "strings":
                 return self.__strings
             case _:
@@ -224,12 +269,12 @@ class _InnoIssTemplateContext:
 
     __default: _InnoIslTemplateContext
     """The view of the manifest's source language."""
-    __langs: tuple[str, ...]
-    """The PO language tags of every language, source language first."""
+    __langs: tuple[_InnoLanguageView, ...]
+    """The views of every language, source language first."""
 
-    def __init__(self, source: LanguagePack, langs: tuple[str, ...]):
+    def __init__(self, source: LanguagePack, langs: tuple[LanguagePack, ...]):
         self.__default = _InnoIslTemplateContext(source)
-        self.__langs = langs
+        self.__langs = tuple(_InnoLanguageView(pack) for pack in langs)
 
     def keys(self) -> tuple[str, ...]:
         """Return the names of the top-level template variables."""
@@ -256,9 +301,12 @@ def run(opts: InnoRenderOpts) -> None:
         source = build_default_pack(manifest, manifest.source_language)
     ordered = [source, *packs.values()]
     # Inno Setup has no standard language identifier representation, so
-    # the PO language tags carry over verbatim.
-    langs = tuple(pack.lang.value for pack in ordered)
-    logging.info("rendering languages: %s", ", ".join(langs))
+    # the PO language tags carry over verbatim as the canonical identity.
+    # The conventional Inno Setup language names are derived per language
+    # by the context views, best effort.
+    logging.info(
+        "rendering languages: %s", ", ".join(str(pack.lang) for pack in ordered)
+    )
 
     # Every component renders with its own environment, so their filters
     # never interfere with each other.
@@ -279,13 +327,13 @@ def run(opts: InnoRenderOpts) -> None:
     render(
         iss_template_env,
         opts.in_iss_template,
-        _InnoIssTemplateContext(source, langs),
+        _InnoIssTemplateContext(source, tuple(ordered)),
         iss_out,
     )
 
-    for pack, lang in zip(ordered, langs):
+    for pack in ordered:
         isl_out = opts.out_dir / render_path(
-            isl_path_env, opts.in_isl_path, _InnoIslPathContext(lang)
+            isl_path_env, opts.in_isl_path, _InnoIslPathContext(pack)
         )
         render(
             isl_template_env,

@@ -61,7 +61,12 @@ InnoSetup installation involves multiple file formats. All formats of them can b
 
 Based on these document, we create corresponding Liquid filters for both files, since they share the same message value format.
 
-Unlike the other targets, InnoSetup has no standard representation of language identifiers: both the internal language names declared in the `[Languages]` section and the message file names are chosen freely by the packager, as its official document says. So there is no language representation or convertion code for this target. The PO language tag carries over verbatim, and the pairing between a language and its base `.isl` file is expressed explicitly by the template author.
+Unlike the other targets, InnoSetup has no standard representation of language identifiers: both the internal language names declared in the `[Languages]` section and the message file names are chosen freely by the packager, as its official document says. So there is no normative conversion for this target - the PO language tag carries over verbatim as the canonical identity. What MetaGlot adds on top is a best-effort conversion to the conventional language file names distributed by the InnoSetup project. We transcribe the name list from its [unofficial translations page](https://jrsoftware.org/files/istrans/), which covers both the official translations bundled with the compiler and the community provided ones (including the outdated ones). The list was fetched on **2026-10-08** and reflects Inno Setup **6.5.0+**. The names are represented by `InnoLang`, which constrains them to ASCII letters and spaces. Notes kept during the transcription:
+
+- The conventional name is the file base name, not the `LanguageName` field inside the file: `ChineseSimplified` vs `Chinese (Simplified)`.
+- English has no dedicated file: `en` converts to `Default`, because `Default.isl` sits at the compiler root, not in the `Languages` subfolder.
+- Seven legacy community files ship with a `.islu` extension (Bengali, Hindi, Kazakh, Marathi, Nepali, Sinhala, Uyghur); the table records base names only.
+- The pairing between a language and its base `.isl` file remains knowledge of the template author for languages outside the transcription table (the conversion yields nothing, and the PO language tag is the fallback).
 
 ## Bump Version Up
 

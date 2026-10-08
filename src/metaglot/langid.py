@@ -470,3 +470,65 @@ class WinLcid:
         return hash(self.__value)
 
     # endregion
+
+
+class InnoLang:
+    """
+    Represents the human-readable name of an Inno Setup language, i.e. the
+    conventional base name of a messages (``.isl``) file such as ``Japanese``
+    or ``ChineseSimplified``.
+
+    Inno Setup itself defines no grammar for these names: the official and
+    community translations simply use CamelCase English words. This class
+    constrains them conservatively: a non-empty run of ASCII letters and
+    spaces that starts with a letter.
+
+    Examples:
+        InnoLang("Japanese")           # valid
+        InnoLang("Chinese Simplified") # valid (spaces allowed)
+        InnoLang(" Japanese")          # invalid (must start with a letter)
+        InnoLang("")                   # invalid (empty)
+        InnoLang("日本語")              # invalid (non-ASCII characters)
+    """
+
+    __PATTERN: ClassVar[re.Pattern] = re.compile(r"^[A-Za-z][A-Za-z ]*$")
+
+    __value: str
+    """The language name."""
+
+    def __init__(self, value: str):
+        if not self.__PATTERN.match(value):
+            raise ValueError(
+                f"Invalid Inno Setup language name: {value!r}. "
+                f"Expected only ASCII letters and spaces"
+            )
+        self.__value = value
+
+    # region: Properties
+
+    @property
+    def value(self) -> str:
+        """The language name."""
+        return self.__value
+
+    # endregion
+
+    # region: Object methods
+
+    def __str__(self) -> str:
+        return self.__value
+
+    def __repr__(self) -> str:
+        return f"InnoLang({self.__value!r})"
+
+    def __eq__(self, other) -> bool:
+        if self is other:
+            return True
+        if not isinstance(other, InnoLang):
+            return NotImplemented
+        return self.__value == other.__value
+
+    def __hash__(self) -> int:
+        return hash(self.__value)
+
+    # endregion
