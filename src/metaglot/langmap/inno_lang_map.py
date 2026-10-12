@@ -77,7 +77,9 @@ _OFFICIAL_NAME_KEYS: dict[InnoLang, tuple[str, ...]] = {
     InnoLang("Turkish"): ("tr",),
     InnoLang("Ukrainian"): ("uk",),
 }
+# fmt: on
 
+# fmt: off
 _UNOFFICIAL_NAME_KEYS: dict[InnoLang, tuple[str, ...]] = {
     # Community maintained translations, up to date with 6.5.0+.
     InnoLang("Afrikaans"): ("af",),
