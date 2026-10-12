@@ -5,9 +5,9 @@
 "Glot" is coming from "polyglot".
 -->
 
-**Platform Metadata Localization Compiler**
+**Platform metadata localization compiler**
 
-> One POT, all platforms.
+> One Gettext workflow, all supported platform metadata.
 
 MetaGlot is a command-line tool that unifies localization metadata for applications shipped on multiple platforms. It extracts or defines translatable strings from platform-specific metadata files, normalizes them into Gettext-compatible POT/PO catalogs, and compiles translated PO files back into platform-native files.
 
