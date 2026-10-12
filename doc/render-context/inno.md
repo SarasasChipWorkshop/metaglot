@@ -16,9 +16,11 @@ MetaGlot therefore exposes **two** language identifiers and **one** provenance f
 
 - `name` — the PO language tag (`zh_CN`, `en`), carried over verbatim. It is the canonical join key across everything the pipeline generates: the `Name:` value of a `[Languages]` entry, the language ordering, and the fallback identifier when the conversion below fails.
 - `lang` — the best-effort conversion of the PO tag to a conventional Inno Setup language name (`zh_CN` → `ChineseSimplified`, `ja`/`ja_JP` → `Japanese`). It is `null` when no conventional name is known for the language; handle those languages with `{{ lang | default: name }}`, or with a `case`/`when` block on `name`.
-- `is_official` — whether `lang` belongs to an official translation bundled with Inno Setup (`true`) or to a community provided translation (`false`). It is also `false` when `lang` is `null`, since there is no official file to reference then. Only the official files come with an Inno Setup installation; the community files must be downloaded from the [translations page](https://jrsoftware.org/files/istrans/) and shipped with the installer yourself — or the base file falls back to `compiler:Default.isl` for users with a bare Inno Setup installation.
+- `is_official` — whether `lang` belongs to a translation bundled with the **targeted** Inno Setup version, as given by the required `--inno-version` command line option (`true`), or not (`false`). It is also `false` when `lang` is `null`, since there is no official file to reference then. Only the bundled files come with an Inno Setup installation; the others must be downloaded from the [translations page](https://jrsoftware.org/files/istrans/) and shipped with the installer yourself — or the base file falls back to `compiler:Default.isl` for users with a bare Inno Setup installation.
 
-The conversion table transcribes the official translations bundled with Inno Setup together with the community translations listed on the [unofficial translations page](https://jrsoftware.org/files/istrans/) — including the outdated ones — so adding a new language with a known name requires no template edits. Country-sensitive languages are disambiguated: `zh`/`zh_SG` → `ChineseSimplified` but `zh_TW`/`zh_HK`/`zh_MO` → `ChineseTraditional`; `pt` → `Portuguese` but `pt_BR` → `BrazilianPortuguese`; `en` → `Default` but `en_GB` → `EnglishBritish`; `no`/`nb` → `Norwegian` but `nn` → `NorwegianNynorsk`; `sr` → `SerbianCyrillic` but `sr_RS@latin` → `SerbianLatin`; `ca_ES@valencia` → `Valencian`.
+The conversion table transcribes the conventional names from the [unofficial translations page](https://jrsoftware.org/files/istrans/) — official and community lists alike, including the outdated ones — so adding a new language with a known name requires no template edits. Country-sensitive languages are disambiguated: `zh`/`zh_SG` → `ChineseSimplified` but `zh_TW`/`zh_HK`/`zh_MO` → `ChineseTraditional`; `pt` → `Portuguese` but `pt_BR` → `BrazilianPortuguese`; `en` → `Default` but `en_GB` → `EnglishBritish`; `no`/`nb` → `Norwegian` but `nn` → `NorwegianNynorsk`; `sr` → `SerbianCyrillic` but `sr_RS@latin` → `SerbianLatin`; `ca_ES@valencia` → `Valencian`.
+
+The officiality behind `is_official` is transcribed from the `Languages` folder listings of Inno Setup **6.7.1** and **7.1.0**. The two differ in four names: `ChineseSimplified`, `ChineseTraditional`, `Lithuanian` and `Thai` are bundled with Inno Setup 7 only, so they count as official solely when `--inno-version 7` is given. `Icelandic` is listed as an official translation by the translations page, but neither listing ships it, so it is never official.
 
 Caveats:
 
@@ -68,7 +70,7 @@ The template is rendered once. Referencing any variable fails the render.
 |---|---|---|
 | `lang` | string or null | The conventional Inno Setup language name of the `.isl` messages file being placed, e.g. `ChineseSimplified`; `null` when no conventional name exists. |
 | `name` | string | The PO language tag of the `.isl` messages file being placed, e.g. `en`, `zh_CN`. |
-| `is_official` | boolean | Whether the conventional name belongs to an official translation bundled with Inno Setup; `false` for community provided names and when `lang` is `null`. |
+| `is_official` | boolean | Whether the conventional name is bundled with the Inno Setup version targeted by `--inno-version`; `false` otherwise and when `lang` is `null`. |
 
 The template is rendered once per language, for example:
 
@@ -85,7 +87,7 @@ The `--iss-template` and `--isl-template` arguments point to template files. Bes
 | Variable | Type | Description |
 |---|---|---|
 | `default` | language | The manifest's source language entry, see below. |
-| `langs` | array of language | Every language, source language first. Each entry exposes `name` (the PO language tag), `lang` (the conventional Inno Setup language name, or null) and `is_official` (whether the name belongs to an official translation). |
+| `langs` | array of language | Every language, source language first. Each entry exposes `name` (the PO language tag), `lang` (the conventional Inno Setup language name, or null) and `is_official` (whether the name is bundled with the Inno Setup version targeted by `--inno-version`). |
 
 The `.iss` script references the localized text through `{cm:...}` constants (e.g. `AppName={cm:app_name}`) and enumerates `[Languages]` from `langs` with the base file pairing shown above. `default` is available for values written directly instead of via constants:
 
@@ -103,7 +105,7 @@ The members of the current language are exposed at the top level. The structure 
 |---|---|---|
 | `name` | string | The PO language tag of this `.isl` messages file, e.g. `en_US`, `zh_CN`. |
 | `lang` | string or null | The conventional Inno Setup language name of this `.isl` messages file, e.g. `Japanese`; `null` when no conventional name exists. |
-| `is_official` | boolean | Whether the conventional name belongs to an official translation bundled with Inno Setup; `false` for community provided names and when `lang` is `null`. |
+| `is_official` | boolean | Whether the conventional name is bundled with the Inno Setup version targeted by `--inno-version`; `false` otherwise and when `lang` is `null`. |
 | `strings` | mapping of string to string | Maps every manifest entry key to its resolved text, e.g. `strings.app_name`. |
 
 The resolved text of an entry falls back to the manifest source string when the entry is untranslated, missing from the PO file, or marked fuzzy. The template is rendered once per language.

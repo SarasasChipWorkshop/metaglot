@@ -1,4 +1,5 @@
 import logging
+import enum
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from pathlib import Path
@@ -20,7 +21,17 @@ _ISS_TEMPLATE_DEST = "iss_template"
 _ISL_TEMPLATE_DEST = "isl_template"
 _ISS_PATH_DEST = "iss_path"
 _ISL_PATH_DEST = "isl_path"
+_INNO_VERSION_DEST = "inno_version"
 _OUTPUT_DEST = "output"
+
+
+class InnoVersion(enum.StrEnum):
+    """The type for accepting Inno Setup version in command line."""
+
+    Inno6 = "6"
+    """Inno Setup 6 series."""
+    Inno7 = "7"
+    """Inno Setup 7 series."""
 
 
 @dataclass(frozen=True)
@@ -37,6 +48,8 @@ class InnoRenderOpts:
     """The Liquid template resolving the output path of the .iss script file."""
     in_isl_path: str
     """The Liquid template resolving the output path of every .isl messages file."""
+    inno_version: InnoVersion
+    """The major version of Inno Setup the rendering targets."""
     out_dir: Path
     """The path of the output folder holding every rendered file."""
 
@@ -62,6 +75,18 @@ def register(parser: ArgumentParser) -> None:
         required=True,
         help="The PO files to read, each may be a glob pattern.",
         metavar="GLOB",
+    )
+    parser.add_argument(
+        "--inno-version",
+        dest=_INNO_VERSION_DEST,
+        action="store",
+        type=InnoVersion,
+        choices=[v for v in InnoVersion],
+        required=True,
+        help=(
+            "The major version of Inno Setup the rendering targets; it "
+            "decides which conventional language names count as official."
+        ),
     )
     parser.add_argument(
         "--iss-template",
@@ -129,6 +154,7 @@ def parse(args: dict[str, Any]) -> InnoRenderOpts:
         args[_ISL_TEMPLATE_DEST],
         args[_ISS_PATH_DEST],
         args[_ISL_PATH_DEST],
+        args[_INNO_VERSION_DEST],
         args[_OUTPUT_DEST],
     )
 
@@ -161,17 +187,27 @@ class _InnoIssPathContext:
         raise KeyError(key)
 
 
-def _resolve_inno_lang(pack: LanguagePack) -> tuple[Optional[str], bool]:
+def _resolve_inno_lang(pack: LanguagePack, inno_version: InnoVersion) -> tuple[Optional[str], bool]:
     """Resolve a language pack to its conventional Inno Setup language
-    name and officiality.
+    name and officiality, against the targeted Inno Setup version.
 
     :param pack: The language pack to resolve.
+    :param inno_version: The Inno Setup major version the rendering
+        targets.
     :return: A pair of the conventional name (``None`` when no
         conventional name exists) and whether the name belongs to an
-        official translation bundled with Inno Setup (always ``False``
-        when the name is ``None``).
+        official translation bundled with the targeted version (always
+        ``False`` when the name is ``None``).
     """
-    result = inno_lang_map.convert(pack.lang)
+    match inno_version:
+        case InnoVersion.Inno6:
+            map_inno_version = inno_lang_map.InnoVersion.Inno6
+        case InnoVersion.Inno7:
+            map_inno_version = inno_lang_map.InnoVersion.Inno7
+        case _:
+            raise ValueError(f"unhandled Inno Setup version: {inno_version}")
+
+    result = inno_lang_map.convert(pack.lang, map_inno_version)
     name = result.name.value if result.name is not None else None
     return name, result.official
 
@@ -182,8 +218,9 @@ class _InnoIslPathContext:
     It is rendered once per language, with the PO language tag of the
     messages file being placed exposed as ``name``, the best-effort
     conventional Inno Setup language name exposed as ``lang`` and its
-    officiality exposed as ``is_official``. The conversion is not
-    normative and may yield ``None``, so path templates typically render
+    officiality in the targeted Inno Setup version exposed as
+    ``is_official``. The conversion is not normative and may yield
+    ``None``, so path templates typically render
     ``{{ lang | default: name }}``.
     """
 
@@ -194,9 +231,9 @@ class _InnoIslPathContext:
     __official: bool
     """Whether the conventional name is an official translation."""
 
-    def __init__(self, pack: LanguagePack):
+    def __init__(self, pack: LanguagePack, inno_version: InnoVersion):
         self.__name = pack.lang.value
-        self.__lang, self.__official = _resolve_inno_lang(pack)
+        self.__lang, self.__official = _resolve_inno_lang(pack, inno_version)
 
     def keys(self) -> tuple[str, ...]:
         """Return the names of the top-level template variables."""
@@ -220,7 +257,8 @@ class _InnoLanguageView:
 
     It exposes the PO language tag as ``name``, the best-effort
     conventional Inno Setup language name as ``lang`` (``None`` when no
-    conventional name exists) and its officiality as ``is_official``.
+    conventional name exists) and its officiality in the targeted Inno
+    Setup version as ``is_official``.
     """
 
     __name: str
@@ -230,9 +268,9 @@ class _InnoLanguageView:
     __official: bool
     """Whether the conventional name is an official translation."""
 
-    def __init__(self, pack: LanguagePack):
+    def __init__(self, pack: LanguagePack, inno_version: InnoVersion):
         self.__name = pack.lang.value
-        self.__lang, self.__official = _resolve_inno_lang(pack)
+        self.__lang, self.__official = _resolve_inno_lang(pack, inno_version)
 
     def __getitem__(self, key: str) -> object:
         match key:
@@ -265,10 +303,10 @@ class _InnoIslTemplateContext:
     __official: bool
     """Whether the conventional name is an official translation."""
 
-    def __init__(self, pack: LanguagePack):
+    def __init__(self, pack: LanguagePack, inno_version: InnoVersion):
         self.__pack = pack
         self.__strings = _InnoStringsView(pack)
-        self.__lang, self.__official = _resolve_inno_lang(pack)
+        self.__lang, self.__official = _resolve_inno_lang(pack, inno_version)
 
     def keys(self) -> tuple[str, ...]:
         """Return the names of the exposed template variables."""
@@ -297,9 +335,16 @@ class _InnoIssTemplateContext:
     __langs: tuple[_InnoLanguageView, ...]
     """The views of every language, source language first."""
 
-    def __init__(self, source: LanguagePack, langs: tuple[LanguagePack, ...]):
-        self.__default = _InnoIslTemplateContext(source)
-        self.__langs = tuple(_InnoLanguageView(pack) for pack in langs)
+    def __init__(
+        self,
+        source: LanguagePack,
+        langs: tuple[LanguagePack, ...],
+        inno_version: InnoVersion,
+    ):
+        self.__default = _InnoIslTemplateContext(source, inno_version)
+        self.__langs = tuple(
+            _InnoLanguageView(pack, inno_version) for pack in langs
+        )
 
     def keys(self) -> tuple[str, ...]:
         """Return the names of the top-level template variables."""
@@ -352,17 +397,19 @@ def run(opts: InnoRenderOpts) -> None:
     render(
         iss_template_env,
         opts.in_iss_template,
-        _InnoIssTemplateContext(source, tuple(ordered)),
+        _InnoIssTemplateContext(source, tuple(ordered), opts.inno_version),
         iss_out,
     )
 
     for pack in ordered:
         isl_out = opts.out_dir / render_path(
-            isl_path_env, opts.in_isl_path, _InnoIslPathContext(pack)
+            isl_path_env,
+            opts.in_isl_path,
+            _InnoIslPathContext(pack, opts.inno_version),
         )
         render(
             isl_template_env,
             opts.in_isl_template,
-            _InnoIslTemplateContext(pack),
+            _InnoIslTemplateContext(pack, opts.inno_version),
             isl_out,
         )
