@@ -161,29 +161,46 @@ class _InnoIssPathContext:
         raise KeyError(key)
 
 
+def _resolve_inno_lang(pack: LanguagePack) -> tuple[Optional[str], bool]:
+    """Resolve a language pack to its conventional Inno Setup language
+    name and officiality.
+
+    :param pack: The language pack to resolve.
+    :return: A pair of the conventional name (``None`` when no
+        conventional name exists) and whether the name belongs to an
+        official translation bundled with Inno Setup (always ``False``
+        when the name is ``None``).
+    """
+    result = inno_lang_map.convert(pack.lang)
+    name = result.name.value if result.name is not None else None
+    return name, result.official
+
+
 class _InnoIslPathContext:
     """The Liquid-facing context of one .isl path template rendering.
 
     It is rendered once per language, with the PO language tag of the
-    messages file being placed exposed as ``name`` and the best-effort
-    conventional Inno Setup language name exposed as ``lang``. The
-    conversion is not normative and may yield ``None``, so path templates
-    typically render ``{{ lang | default: name }}``.
+    messages file being placed exposed as ``name``, the best-effort
+    conventional Inno Setup language name exposed as ``lang`` and its
+    officiality exposed as ``is_official``. The conversion is not
+    normative and may yield ``None``, so path templates typically render
+    ``{{ lang | default: name }}``.
     """
 
     __name: str
     """The PO language tag of the .isl messages file being placed."""
     __lang: Optional[str]
     """The conventional Inno Setup language name, or None if unknown."""
+    __official: bool
+    """Whether the conventional name is an official translation."""
 
     def __init__(self, pack: LanguagePack):
-        inno = inno_lang_map.convert(pack.lang)
         self.__name = pack.lang.value
-        self.__lang = inno.value if inno is not None else None
+        self.__lang, self.__official = _resolve_inno_lang(pack)
 
     def keys(self) -> tuple[str, ...]:
         """Return the names of the top-level template variables."""
-        return ("lang", "name")
+        return ("lang", "name", "is_official")
 
     def __getitem__(self, key: str) -> object:
         match key:
@@ -191,6 +208,8 @@ class _InnoIslPathContext:
                 return self.__lang
             case "name":
                 return self.__name
+            case "is_official":
+                return self.__official
             case _:
                 raise KeyError(key)
 
@@ -199,20 +218,21 @@ class _InnoLanguageView:
     """The Liquid-facing view of one language inside the ``langs`` array of
     the .iss template context.
 
-    It exposes the PO language tag as ``name`` and the best-effort
+    It exposes the PO language tag as ``name``, the best-effort
     conventional Inno Setup language name as ``lang`` (``None`` when no
-    conventional name exists).
+    conventional name exists) and its officiality as ``is_official``.
     """
 
     __name: str
     """The PO language tag."""
     __lang: Optional[str]
     """The conventional Inno Setup language name, or None if unknown."""
+    __official: bool
+    """Whether the conventional name is an official translation."""
 
     def __init__(self, pack: LanguagePack):
-        inno = inno_lang_map.convert(pack.lang)
         self.__name = pack.lang.value
-        self.__lang = inno.value if inno is not None else None
+        self.__lang, self.__official = _resolve_inno_lang(pack)
 
     def __getitem__(self, key: str) -> object:
         match key:
@@ -220,6 +240,8 @@ class _InnoLanguageView:
                 return self.__name
             case "lang":
                 return self.__lang
+            case "is_official":
+                return self.__official
             case _:
                 raise KeyError(key)
 
@@ -240,16 +262,17 @@ class _InnoIslTemplateContext:
     """The view of the pack's translations."""
     __lang: Optional[str]
     """The conventional Inno Setup language name, or None if unknown."""
+    __official: bool
+    """Whether the conventional name is an official translation."""
 
     def __init__(self, pack: LanguagePack):
         self.__pack = pack
         self.__strings = _InnoStringsView(pack)
-        inno = inno_lang_map.convert(pack.lang)
-        self.__lang = inno.value if inno is not None else None
+        self.__lang, self.__official = _resolve_inno_lang(pack)
 
     def keys(self) -> tuple[str, ...]:
         """Return the names of the exposed template variables."""
-        return ("name", "lang", "strings")
+        return ("name", "lang", "is_official", "strings")
 
     def __getitem__(self, key: str) -> object:
         match key:
@@ -257,6 +280,8 @@ class _InnoIslTemplateContext:
                 return self.__pack.lang.value
             case "lang":
                 return self.__lang
+            case "is_official":
+                return self.__official
             case "strings":
                 return self.__strings
             case _:

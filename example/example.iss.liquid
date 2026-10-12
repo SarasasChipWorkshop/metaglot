@@ -10,9 +10,14 @@ SolidCompression=yes
 
 [Languages]
 {% for lang in langs -%}
-{%- if lang.lang and lang.lang != 'Default' -%}
+{%- if lang.lang == 'Default' -%}
+{% assign base = 'compiler:Default.isl' -%}
+{%- elsif lang.is_official -%}
 {% assign base = 'compiler:Languages\' | append: lang.lang | append: '.isl' -%}
 {%- else -%}
+{%- comment -%}
+unofficial or unknown: not bundled with Inno Setup, fall back for bare installs
+{%- endcomment -%}
 {% assign base = 'compiler:Default.isl' -%}
 {%- endif -%}
 {% assign incremental = lang.lang | default: lang.name -%}
