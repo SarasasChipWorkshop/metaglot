@@ -104,8 +104,7 @@ def register(parser: ArgumentParser) -> None:
         type=Path,
         required=True,
         help=(
-            "The path to the input user-provided Liquid for the .isl "
-            "messages files."
+            "The path to the input user-provided Liquid for the .isl messages files."
         ),
         metavar="FILE",
     )
@@ -187,7 +186,9 @@ class _InnoIssPathContext:
         raise KeyError(key)
 
 
-def _resolve_inno_lang(pack: LanguagePack, inno_version: InnoVersion) -> tuple[Optional[str], bool]:
+def _resolve_inno_lang(
+    pack: LanguagePack, inno_version: InnoVersion
+) -> tuple[Optional[str], bool]:
     """Resolve a language pack to its conventional Inno Setup language
     name and officiality, against the targeted Inno Setup version.
 
@@ -342,9 +343,7 @@ class _InnoIssTemplateContext:
         inno_version: InnoVersion,
     ):
         self.__default = _InnoIslTemplateContext(source, inno_version)
-        self.__langs = tuple(
-            _InnoLanguageView(pack, inno_version) for pack in langs
-        )
+        self.__langs = tuple(_InnoLanguageView(pack, inno_version) for pack in langs)
 
     def keys(self) -> tuple[str, ...]:
         """Return the names of the top-level template variables."""
@@ -375,7 +374,8 @@ def run(opts: InnoRenderOpts) -> None:
     # The conventional Inno Setup language names are derived per language
     # by the context views, best effort.
     logging.info(
-        "rendering languages: %s", ", ".join(str(pack.lang) for pack in ordered)
+        "Rendering InnoSetup files with languages: %s",
+        ", ".join(str(pack.lang) for pack in ordered),
     )
 
     # Every component renders with its own environment, so their filters

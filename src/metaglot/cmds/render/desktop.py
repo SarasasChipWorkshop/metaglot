@@ -160,7 +160,7 @@ def run(opts: DesktopRenderOpts) -> None:
     default = build_default_pack(manifest, manifest.source_language)
     context = _DesktopRenderContext(packs, default)
     logging.info(
-        "rendering languages: %s (default %s)",
+        "Rendering FreeDesktop Desktop file with languages: %s (default %s)",
         ", ".join(str(pack.lang) for pack in packs.values()),
         default.lang,
     )

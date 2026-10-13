@@ -160,7 +160,7 @@ def run(opts: AppStreamRenderOpts) -> None:
     default = build_default_pack(manifest, manifest.source_language)
     context = _AppStreamRenderContext(packs, default)
     logging.info(
-        "rendering languages: %s (default %s)",
+        "Rendering FreeDesktop AppStream file with languages: %s (default %s)",
         ", ".join(str(pack.lang) for pack in packs.values()),
         default.lang,
     )

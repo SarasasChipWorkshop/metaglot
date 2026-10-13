@@ -180,7 +180,7 @@ def run(opts: RcRenderOpts) -> None:
         )
     context = _RcRenderContext(packs)
     logging.info(
-        "rendering languages: %s",
+        "Rendering Windows RC file with languages: %s",
         ", ".join(str(pack.lang) for pack in packs.values()),
     )
     env = create_environment()

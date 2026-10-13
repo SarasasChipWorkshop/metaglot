@@ -284,7 +284,10 @@ def run(opts: PlistRenderOpts) -> None:
         source = build_default_pack(manifest, manifest.source_language)
     ordered = [source, *packs.values()]
     langs = tuple(plist_lang_map.convert(pack.lang).value for pack in ordered)
-    logging.info("rendering languages: %s", ", ".join(langs))
+    logging.info(
+        "Rendering PList files with languages: %s",
+        ", ".join(str(pack.lang) for pack in ordered),
+    )
 
     # Every component renders with its own environment, so their filters
     # never interfere with each other.
