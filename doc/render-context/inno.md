@@ -16,7 +16,7 @@ MetaGlot therefore exposes **two** language identifiers and **one** provenance f
 
 - `name` — the PO language tag (`zh_CN`, `en`), carried over verbatim. It is the canonical join key across everything the pipeline generates: the `Name:` value of a `[Languages]` entry, the language ordering, and the fallback identifier when the conversion below fails.
 - `lang` — the best-effort conversion of the PO tag to a conventional Inno Setup language name (`zh_CN` → `ChineseSimplified`, `ja`/`ja_JP` → `Japanese`). It is `null` when no conventional name is known for the language; handle those languages with `{{ lang | default: name }}`, or with a `case`/`when` block on `name`.
-- `is_official` — whether `lang` belongs to a translation bundled with the **targeted** Inno Setup version, as given by the required `--inno-version` command line option (`true`), or not (`false`). It is also `false` when `lang` is `null`, since there is no official file to reference then. Only the bundled files come with an Inno Setup installation; the others must be downloaded from the [translations page](https://jrsoftware.org/files/istrans/) and shipped with the installer yourself — or the base file falls back to `compiler:Default.isl` for users with a bare Inno Setup installation.
+- `is_official` — whether `lang` belongs to a translation bundled with the **targeted** Inno Setup version, as given by the required `--inno-version` command line option (`true`), or not (`false`). It is also `false` when `lang` is `null`, since there is no official file to reference then. Only the bundled files come with an Inno Setup installation; the others must be downloaded from the [translations page](https://jrsoftware.org/files/istrans/) and shipped with the installer yourself. Do **not** pair such a language with `compiler:Default.isl` as a fallback — drop it instead, as shown below.
 
 The conversion table transcribes the conventional names from the [unofficial translations page](https://jrsoftware.org/files/istrans/) — official and community lists alike, including the outdated ones — so adding a new language with a known name requires no template edits. Country-sensitive languages are disambiguated: `zh`/`zh_SG` → `ChineseSimplified` but `zh_TW`/`zh_HK`/`zh_MO` → `ChineseTraditional`; `pt` → `Portuguese` but `pt_BR` → `BrazilianPortuguese`; `en` → `Default` but `en_GB` → `EnglishBritish`; `no`/`nb` → `Norwegian` but `nn` → `NorwegianNynorsk`; `sr` → `SerbianCyrillic` but `sr_RS@latin` → `SerbianLatin`; `ca_ES@valencia` → `Valencian`.
 
@@ -25,30 +25,31 @@ The officiality behind `is_official` is transcribed from the `Languages` folder 
 Caveats:
 
 - English has no dedicated file: `en` converts to `Default`, because `Default.isl` lives at the compiler root instead of the `Languages` subfolder.
+- `Default.isl` is not a neutral fallback base: every `[Languages]` entry inherits the language identity of its base file (the `[LangOptions]` `LanguageName` and `LanguageID`, which drive the Select Language dialog and the default language detection), and `Default.isl` carries the English identity. Pairing fallback entries with it floods the dialog with duplicate English items, so languages without a usable base file are dropped instead.
 - The converted name is the file **base name** (`ChineseSimplified`), not the `LanguageName` field inside the file (`Chinese (Simplified)`).
 - Seven legacy community files ship with a `.islu` extension (Bengali, Hindi, Kazakh, Marathi, Nepali, Sinhala, Uyghur); the conversion returns base names only, and the extension is the template author's concern.
 - Outdated community files predate the current Inno Setup message set; they still load, but their missing messages fall back to English.
 
-With the conversion available, the base file pairing between a language and its base `.isl` — the official full translation whose `[LangOptions]` provides the language identity (the Select Language dialog name and the auto-detection identifier) — keeps two special cases: the location of `Default.isl`, and the official-only fallback for community translations:
+With the conversion available, the base file pairing between a language and its base `.isl` — the official full translation whose `[LangOptions]` provides the language identity (the Select Language dialog name and the auto-detection identifier) — keeps one special case, the location of `Default.isl`, plus a drop rule for everything without an official base file:
 
 ```liquid
 {% for lang in langs -%}
+{%- if lang.is_official -%}
 {%- if lang.lang == 'Default' -%}
 {% assign base = 'compiler:Default.isl' -%}
-{%- elsif lang.is_official -%}
-{% assign base = 'compiler:Languages\' | append: lang.lang | append: '.isl' -%}
 {%- else -%}
-{%- comment -%}
-unofficial or unknown: not bundled with Inno Setup, fall back for bare installs
-{%- endcomment -%}
-{% assign base = 'compiler:Default.isl' -%}
+{% assign base = 'compiler:Languages\' | append: lang.lang | append: '.isl' -%}
 {%- endif -%}
-{% assign incremental = lang.lang | default: lang.name -%}
-Name: "{{ lang.name }}"; MessagesFile: "{{ base }},Strings\{{ incremental }}.isl"
+Name: "{{ lang.name }}"; MessagesFile: "{{ base }},Strings\{{ lang.lang }}.isl"
+{% else -%}
+{%- comment -%}
+unofficial or unmapped: dropped, since a Default.isl fallback would duplicate the English identity in the Select Language dialog
+{%- endcomment -%}
+{% endif -%}
 {% endfor -%}
 ```
 
-The `else` branch serves languages whose `lang` is `null` or unofficial: they fall back to `compiler:Default.isl` and inherit the English language identity. If you prefer keeping the community localization, download its `.isl` from the translations page, ship it next to your installer, and reference it in that branch instead. Keep the fallback aligned with the languages you ship PO files for, and review the rendered `[Languages]` section after adding a new language.
+The `else` branch emits nothing: languages whose `lang` is `null` or not official are dropped from the `[Languages]` section, so the Select Language dialog stays free of duplicate English entries. Note that dropping happens only in the `.iss` template; the `.isl` rendering loop is independent and still writes a messages file for every language (see the note under `--isl-path`). If you want to keep a community localization, download its `.isl` from the translations page, ship it next to your installer, and widen the branch condition to pair it explicitly. Review the rendered `[Languages]` section after adding a new language.
 
 The whitespace control markers (`{%-`/`-%}`) keep the decision block from rendering blank lines into the INI output; use them consistently across the block.
 
@@ -77,6 +78,8 @@ The template is rendered once per language, for example:
 ```liquid
 Strings/{{ lang | default: name }}.isl
 ```
+
+The rendering loop is independent of the dropping decision in the `.iss` template: a language dropped from `[Languages]` still gets its `.isl` messages file written, unreferenced by the installation script. Delete such leftovers in your packaging step if unwanted.
 
 ## File Render Contexts
 

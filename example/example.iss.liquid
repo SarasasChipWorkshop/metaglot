@@ -10,18 +10,18 @@ SolidCompression=yes
 
 [Languages]
 {% for lang in langs -%}
+{%- if lang.is_official -%}
 {%- if lang.lang == 'Default' -%}
 {% assign base = 'compiler:Default.isl' -%}
-{%- elsif lang.is_official -%}
-{% assign base = 'compiler:Languages\' | append: lang.lang | append: '.isl' -%}
 {%- else -%}
-{%- comment -%}
-unofficial or unknown: not bundled with Inno Setup, fall back for bare installs
-{%- endcomment -%}
-{% assign base = 'compiler:Default.isl' -%}
+{% assign base = 'compiler:Languages\' | append: lang.lang | append: '.isl' -%}
 {%- endif -%}
-{% assign incremental = lang.lang | default: lang.name -%}
-Name: "{{ lang.name }}"; MessagesFile: "{{ base }},Strings\{{ incremental }}.isl"
+Name: "{{ lang.name }}"; MessagesFile: "{{ base }},Strings\{{ lang.lang }}.isl"
+{% else -%}
+{%- comment -%}
+unofficial or unmapped: dropped, since a Default.isl fallback would duplicate the English identity in the Select Language dialog
+{%- endcomment -%}
+{% endif -%}
 {% endfor -%}
 [Tasks]
 Name: "desktopicon"; Description: "{cm:task_desktop_icon}"

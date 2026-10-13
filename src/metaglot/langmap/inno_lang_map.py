@@ -54,9 +54,10 @@ class _InnoLangProp:
 # language components ('ll', 'll-CC', or variant-aware forms). Keys
 # needing country disambiguation are spelled out; every other language is
 # reachable through the bare 'll' fallback. Outdated unofficial
-# translations are still transcribed - an outdated base file is better
-# than an English-only installer - with their minimum supported Inno
-# Setup version noted in a trailing comment.
+# translations are still transcribed, so a template author who ships such
+# a base file with the installer themselves still gets name resolution -
+# with their minimum supported Inno Setup version noted in a trailing
+# comment.
 #
 # Transcription notes:
 # - English has no dedicated file: 'Default.isl' lives at the compiler
